@@ -15,7 +15,7 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100),unique=True ,nullable=False)
 
-    tournament_id = db.Column(db.Integer,db.ForeignKey('tournament.id'),nullable=False)
+    tournament_id = db.Column(db.Integer,db.ForeignKey('tournament.id'))
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
 
@@ -32,12 +32,12 @@ class Player(db.Model):
     firstName = db.Column(db.String(50),nullable=False)
     lastName = db.Column(db.String(50),nullable=False)
     age = db.Column(db.Integer,nullable=False)
-    position = db.Column(db.Enum('substitute','field',name='player_position_enum'), nullable=False)
+    position = db.Column(db.Enum('substitute','field',name='player_position_enum'))
     status = db.Column(db.Enum('active','suspended',name='player_status_enum'), nullable=False)
     goals = db.Column(db.Integer,default=0)
     appearances = db.Column(db.Integer,default=0)
 
-    team_id = db.Column(db.Integer,db.ForeignKey('team.id'), nullable=False)
+    team_id = db.Column(db.Integer,db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates='players')
     playerEvents = db.relationship('MatchEvent', back_populates='player')
 
