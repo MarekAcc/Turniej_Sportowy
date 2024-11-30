@@ -30,5 +30,9 @@ def player():
 
 @views.route('/team')
 def team():
-    # new_team = create_team('Inter Mediolan',1)
-    return "<h1>Dodano druzynę</h1>"
+    if request.method == 'POST':
+        name = request.form.get('name')
+        id_turnieju = request.form.get('id')
+        create_team(name,id_turnieju)
+        
+    return render_template("register_team.html")
