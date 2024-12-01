@@ -9,7 +9,7 @@ class Tournament(db.Model):
 
     teams = db.relationship('Team', back_populates='tournament')
     matches = db.relationship('Match', back_populates='tournament', cascade="all, delete-orphan")
-
+    
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
