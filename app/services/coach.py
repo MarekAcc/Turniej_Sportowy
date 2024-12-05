@@ -26,5 +26,9 @@ def register_coach(firstName, lastName, age, login, password1, password2):
     db.session.commit()
     return new_coach
     
+#Funkcja do zwracania n trenerów. (obsluga błędów, co gdy nie ma tylu coachow, funkcje sortowania(np alfabetycznie, albo inne opcje)
+def get_coaches(n):
+    # TO DO
+    print(n)
 
     

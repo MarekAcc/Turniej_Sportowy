@@ -27,3 +27,8 @@ def create_tournament(name, type, status):
     new_tournament = Tournament(name=name, type=type, status=status)
     db.session.add(new_tournament)
     db.session.commit()
+
+#Funkcja do zwracania n turniejow. (obsluga błędów, co gdy nie ma tylu funkcje sortowania(np alfabetycznie, albo inne opcje)
+def get_tournaments(n):
+    # TO DO
+    print(n)

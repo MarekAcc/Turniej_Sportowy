@@ -51,3 +51,7 @@ def delete_team(name):
         raise ValueError(f"Błąd podczas usuwania drużyny '{name}': {e}")
     
 
+#Funkcja do zwracania n druzyn. (obsluga błędów, co gdy nie ma tylu coachow, funkcje sortowania(np alfabetycznie, albo inne opcje)
+def get_teams(n):
+    # TO DO
+    print(n)
