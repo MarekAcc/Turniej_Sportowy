@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+New Coach(User)
+{% endblock %}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Zarejestruj się jako nowy trener</h3>
+    <div class="form-group">
+        <label for="coachFirstName">Imię</label>
+        <input type="text" class="form-control" id="coachFirstName" name="firstName" placeholder="Imię">
+    </div>
+    <div class="form-group">
+        <label for="coachLastName">Nazwisko</label>
+        <input type="text" class="form-control" id="coachLastName" name="lastName" placeholder="Nazwisko">
+    </div>
+    <div class="form-group">
+        <label for="playerAge">Wiek</label>
+        <select name="age" id="playerAge" class="form-control">
+            {% for i in range(18, 100) %}
+              <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+          </select>
+    </div>
+    <div class="form-group">
+        <label for="coachLogin">Login</label>
+        <input type="text" class="form-control" id="coachLogin" name="login" placeholder="Login">
+    </div>
+    <div class="form-group">
+        <label for="coachPass1">Hasło</label>
+        <input type="text" class="form-control" id="coachPass1" name="password1" placeholder="Hasło">
+    </div>
+    <div class="form-group">
+        <label for="coachPass1">Powtórz hasło</label>
+        <input type="text" class="form-control" id="coachPass2" name="password2" placeholder="Powtórz hasło">
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

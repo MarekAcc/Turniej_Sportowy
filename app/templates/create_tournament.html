@@ -1,26 +1,28 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 
 {% block title %}
 Create tournament
 {% endblock %}
-
 {% block content %}
 <form method="POST">
-    <h3 align="center">Cos tam</h3>
+    <h3 align="center">Utwórz nowy turniej</h3>
     <div class="form-group">
         <label for="name">Nazwa turnieju</label>
         <input type="text" class="form-control" id="tournamentName" name="tournamentName" placeholder="Podaj nazwę turnieju">
-
     </div>
     <div class="form-group">
         <label for="type">Format turnieju</label>
-        <input type="text" class="form-control" id="tournamentType" name="tournamentType" placeholder="Podaj format turnieju">
-        
+        <select name="tournamentType">
+            <option>Liga</option>
+            <option>Turniej pucharowy</option>
+        </select>
     </div>
     <div class="form-group">
         <label for="type">Status turnieju</label>
-        <input type="text" class="form-control" id="tournamentStatus" name="tournamentStatus" placeholder="Podaj status turnieju">
-        
+        <select name="tournamentStatus">
+            <option>Aktywny</option>
+            <option>Zakończony</option>
+        </select>
     </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>

@@ -1,3 +1,5 @@
-.migrations/
-.venv/
+/migrations/
+/venv/
 notes.txt
+.DS_Store
+/app/services/__pycache__
