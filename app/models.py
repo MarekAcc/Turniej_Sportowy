@@ -1,4 +1,5 @@
 from . import db
+from flask_login import UserMixin
 
 
 class Tournament(db.Model):
@@ -19,8 +20,6 @@ class Team(db.Model):
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
 
-
-
     teamCoach = db.relationship('Coach', back_populates='team')
     
     # Relacje do meczów
@@ -36,8 +35,8 @@ class Player(db.Model):
     status = db.Column(db.Enum('active','suspended',name='player_status_enum'), nullable=False)
     goals = db.Column(db.Integer,default=0)
     appearances = db.Column(db.Integer,default=0)
-
     team_id = db.Column(db.Integer,db.ForeignKey('team.id'))
+
     team = db.relationship('Team', back_populates='players')
     playerEvents = db.relationship('MatchEvent', back_populates='player')
 
@@ -68,7 +67,7 @@ class MatchEvent(db.Model):
     match = db.relationship('Match',back_populates='matchEvents')
     player = db.relationship('Player', back_populates='playerEvents')
 
-class Coach(db.Model):
+class Coach(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     firstName = db.Column(db.String(50),nullable=False)
     lastName = db.Column(db.String(50),nullable=False)

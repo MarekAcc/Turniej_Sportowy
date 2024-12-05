@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 
 {% block title %}
 Create team
@@ -10,11 +10,15 @@ Create team
     <div class="form-group">
         <label for="name">Nazwa drużyny</label>
         <input type="text" class="form-control" id="name" name="name" placeholder="Podaj nazwę drużyny">
-        <label for="name">Id turnieju do którego należy</label>
-        <input type="text" class="form-control" id="tournament_id" name="tournament_id" placeholder="Podaj nazwę drużyny">
-
+        <label for="tournament_id">Nazwa turnieju, w którym druzyna będzie grać</label>
+        <input type="text" class="form-control" id="tournament_id" name="tournament" placeholder="Podaj nazwę drużyny">
     </div>
-
+    <div class="form-group">
+        {% for i in range(1, 17) %}
+        <label for="zawodnik{{i}}">Zawodnik {{i}}</label>
+        <input type="text" class="form-control" id="zawodnik{{i}}" name="player{{i}}" placeholder="Imię i nazwisko">
+      {% endfor %}
+    </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>

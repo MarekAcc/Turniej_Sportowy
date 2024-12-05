@@ -1,55 +1,83 @@
 
-from flask import Blueprint, render_template, request
-from .models import Tournament,Team,Match
+from flask import Blueprint, render_template, request, flash
+from .models import Tournament,Team,Match, Coach
 from . import db
 from .services.tournament import create_tournament
-from .services.player import create_player
-from .services.team import create_team
+from .services.player import new_player
+from .services.team import register_team, delete_team
+from flask_login import login_user, login_required, logout_user, current_user
 
 views = Blueprint('views', __name__)
 
-Username_trener = 'trener'
-Password_trener = 'trener'
-Username_admin = 'admin'
-Password_admin = 'admin'
-
 @views.route('/')
 def home():
-    # new_tournament = create_tournament('A Klasa','league', 'ended')
-    return render_template("home.html")
+    return render_template("home.html", user=current_user)
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
-def create():
+@login_required
+def tournament_adder():
     if request.method == 'POST':
         tournamentName = request.form.get('tournamentName')
         tournamentType = request.form.get('tournamentType')
-        create_tournament(tournamentName,tournamentType, 'ended')
+        tournamentStatus = request.form.get('tournamentStatus')
 
-    return render_template("create_tournament.html")
+        if not tournamentName or not tournamentType or not tournamentStatus:
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('create_tournament.html', user=current_user)
+        try:  
+            create_tournament(tournamentName,tournamentType, tournamentStatus)
+            flash('Turniej został pomyślnie dodany!', 'success')
+            return render_template("create_tournament.html", user=current_user)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template("create_tournament.html", user=current_user)
+    return render_template("create_tournament.html", user=current_user)
 
-@views.route('/player')
-def player():
-    # new_player = create_player('Marco','Reus', 29, 'active')
-    return "<h1>Dodano zawodnika</h1>"
+@views.route('/new-player', methods=['GET', 'POST'])
+@login_required
+def player_adder():
+    if request.method == 'POST':
+        firstName = request.form.get('firstName')
+        lastName = request.form.get('lastName')
+        age = request.form.get('age')
 
-@views.route('/team', methods=['GET','POST'])
-def team():
+        if not firstName or not lastName or not age:
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('new_player.html', user=current_user)
+        try:
+            new_player(firstName,lastName,age)
+            flash('Zawodnik został pomyślnie dodany!', 'success')
+            return render_template('new_player.html', user=current_user)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('new_player.html', user=current_user)
+
+    return render_template("new_player.html", user=current_user)
+
+@views.route('/team-adder', methods=['GET','POST'])
+@login_required
+def team_adder():
     if request.method == 'POST':
         name = request.form.get('name')
-        id_turnieju = request.form.get('tournament_id')
-        create_team(name,int(id_turnieju))
+        tournament = request.form.get('tournament')
+        players = []
+        for i in range(1,17):
+            player = request.form.get(f'player{i}')
+            if not player:
+                flash('Wszyscy zawodnicy są wymagani!', 'danger')
+                return render_template('register_team.html', user=current_user)
+            players.append(player)
+
+        if not name or not tournament:
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('register_team.html', user=current_user)
+        try:
+            register_team(name,tournament,players)
+            flash('Druzyna została pomyślnie zarejestrowana!', 'success')
+            return render_template("register_team.html", user=current_user)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template("register_team.html", user=current_user)
         
-    return render_template("register_team.html")
-
-
-@views.route('/login', methods=['GET', 'POST'])
-def login():
-   
-    if request.method == 'POST':
-        Username = request.form.get('username')
-        Password = request.form.get('password')
-        if Username == Username_trener and Password == Password_trener:
-            return render_template("trener_p.html")
-        if Username == Username_admin and Password == Password_admin:
-            return render_template("admin_p.html")
-    return render_template("login.html")    
+    return render_template("register_team.html", user=current_user)
+  
