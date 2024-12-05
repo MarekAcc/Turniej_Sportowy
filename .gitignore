@@ -1,5 +1,5 @@
 /migrations/
 /venv/
 notes.txt
-.DS_Store
+/app/.DS_Store
 /app/services/__pycache__
