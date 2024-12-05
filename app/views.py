@@ -26,7 +26,6 @@ danych druzyny dodac na gorze mecze rozgrywane w turnieju z ktorego uzytkownik k
 
 Uzytkownik bedzie rowniez mogl kliknac sobie w mecz i wyswietlą mu sie informacje o tym meczu oraz wszystkie MatchEventy
 
-
 DRUŻYNA- gdy uzytkownik wyszuka jakas druzyne to wyswietli mu sie profil tej druzyny (zawodnicy, trener, statystyki, mecze)
 
 Z poziomu druzyny uzytkownik bedzie mogl sobie kliknac na zawodnika, trenera, mecz, rozgrywany turniej i obejrzec szczegóły. 
@@ -41,6 +40,10 @@ SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 # Strona główna, która widzi kazdy niezalogowany uzytkownik, czyli KIBIC
 @views.route('/')
 def home():
+
+    players = Player.get_players(10)
+    for player in players:
+        print(player.firstName)
     return render_template("home.html", user=current_user)
 
 @views.route('/create-tournament', methods=['GET', 'POST'])

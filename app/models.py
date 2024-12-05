@@ -33,6 +33,7 @@ class Tournament(db.Model):
     def get_teams():
         print("TO DO")
 
+    # obsluga bledow
     def remove_team_from_tournament():
         print("TO DO")
 

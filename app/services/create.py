@@ -83,6 +83,7 @@ def create_coach(firstName, lastName, age, login, password1, password2):
     if len(password1) < 4 or len(password1) > 50:
         raise ValueError('Hasło jest nieprawdłowej długości! min. 4 znaki max. 50')
     
+    # Wrzucic do walidacji formularza (poza tą funkcją)
     if password1 != password2 :
         raise ValueError('Hasła nie są takie same!')
     
