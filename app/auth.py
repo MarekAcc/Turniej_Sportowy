@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .services.coach import register_coach
+from .services.create import create_coach
 from flask_login import login_user, login_required, logout_user, current_user
 from .models import Tournament,Team,Match, Coach
 
@@ -23,7 +23,7 @@ def sign_up():
         # Proba dodania nowego coacha(usera), jezeli funkcja register_coach wyrzuci błąd to 
         # wyswietla się komunikat i trzeba robić od nowa
         try:
-            user = register_coach(firstName, lastName, age, login, password1, password2)
+            user = create_coach(firstName, lastName, age, login, password1, password2)
             login_user(user, remember=True)
             flash('Zarejestrowałeś się pomyślnie!', 'success')
             return redirect(url_for('views.home'))

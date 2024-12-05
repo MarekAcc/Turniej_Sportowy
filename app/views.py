@@ -1,14 +1,44 @@
 
 from flask import Blueprint, render_template, request, flash
-from .models import Tournament,Team,Match, Coach
+from .models import Tournament,Team,Match, Coach, Player
 from . import db
-from .services.tournament import create_tournament
-from .services.player import new_player
-from .services.team import register_team, delete_team
+from .services.create import create_player, create_tournament, create_team
 from flask_login import login_user, login_required, logout_user, current_user
 
 views = Blueprint('views', __name__)
 
+""" 
+Punkt widzenia kibica:
+
+W górnym pasku ma być : Strona głowna, Login, Zarejestruj się
+
+Na stronie będie docelowo 5 przyciskow: Turnieje, Druzyny, Zawodnicy, Trenerzy, Sędziowie
+
+Po kliknięciu w któryś z nich wyświetli się kilka danych z bazy, ale najwazniejsze
+bedzie pole do wyszukania, gdzie uzytkownik będzie mogl wyszukac turniej, druzyne itp. 
+w zaleznosci w jaką stronę wszedł.
+
+TURNIEJ - Wyswietli się tabela ligowa, lub drabinka(playoff), a pod spodem mecze rozegrane i zaplanowane.
+
+Uzytkownik bedzie mogl kliknac sobie w kazda druzyne i wyswietli mu sie strona druzyny(taka sama jak gdy bedzie
+szukal sobie druznyn niezaleznie od turnieju lub mozemy to bardziej zmodyfikowac pod turniej tzn. oprocz ogolnych
+danych druzyny dodac na gorze mecze rozgrywane w turnieju z ktorego uzytkownik kliknal w druzyne)
+
+Uzytkownik bedzie rowniez mogl kliknac sobie w mecz i wyswietlą mu sie informacje o tym meczu oraz wszystkie MatchEventy
+
+
+DRUŻYNA- gdy uzytkownik wyszuka jakas druzyne to wyswietli mu sie profil tej druzyny (zawodnicy, trener, statystyki, mecze)
+
+Z poziomu druzyny uzytkownik bedzie mogl sobie kliknac na zawodnika, trenera, mecz, rozgrywany turniej i obejrzec szczegóły. 
+
+ZAWODNIK - profil zawodnika bedzie zawieral jego statystyki(mecze, gole, kary), jego druzyne i byc moze cos jeszcze
+
+TRENER - dane i druzyna
+
+SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
+
+"""
+# Strona główna, która widzi kazdy niezalogowany uzytkownik, czyli KIBIC
 @views.route('/')
 def home():
     return render_template("home.html", user=current_user)
@@ -45,7 +75,7 @@ def player_adder():
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('new_player.html', user=current_user)
         try:
-            new_player(firstName,lastName,age)
+            create_player(firstName,lastName,age)
             flash('Zawodnik został pomyślnie dodany!', 'success')
             return render_template('new_player.html', user=current_user)
         except ValueError as e:
@@ -72,7 +102,7 @@ def team_adder():
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('register_team.html', user=current_user)
         try:
-            register_team(name,tournament,players)
+            create_team(name,tournament,players)
             flash('Druzyna została pomyślnie zarejestrowana!', 'success')
             return render_template("register_team.html", user=current_user)
         except ValueError as e:
@@ -81,3 +111,12 @@ def team_adder():
         
     return render_template("register_team.html", user=current_user)
   
+@views.route('/match-adder', methods=['GET','POST'])
+@login_required
+def match_adder():
+    print("TODO")
+
+@views.route('/match-event-adder', methods=['GET','POST'])
+@login_required
+def match_event_adder():
+    print("TODO")
