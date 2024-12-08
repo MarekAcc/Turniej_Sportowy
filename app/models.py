@@ -238,15 +238,16 @@ class Player(db.Model):
     # co się tak samo nazwyają i maja tyle samo lat - jakoś to rozwiązac np. wyswietlic obydwoch i poinformowac o tym usera)
     @classmethod
     def find_player(cls, player_id):
-        return cls.query.order_by(id = player_id).first()
-    @classmethod
+        return cls.query.filter_by(id = player_id).first()
+    
     # Bezpieczne usuwanie zawodnika
+    @classmethod
     def delete_player(cls, player_id):
         if not player_id:
-            raise ValueError("Musisz podać ID drużyny do usunięcia.")
+            raise ValueError("Musisz podać ID zawodnika do usunięcia.")
         player = cls.query.get(player_id)
-        if player.team_id != None:
-            raise ValueError("Zawodnik należy do drużyny. ")
+        if player.team_id:
+            player.team_id = None
         db.session.delete(player_id)
         db.session.commit()
         
@@ -321,6 +322,14 @@ class Coach(db.Model,UserMixin):
             query = query.limit(n)
         return query.all()
 
-    # Bezpieczne usuwanie zawodnika
-    def delete_coach():
-        print("TO DO")
+    # Bezpieczne usuwanie trenera
+    @classmethod
+    def delete_coach(cls, coach_id):
+        if not coach_id:
+            raise ValueError("Musisz podać ID trenera do usunięcia.")
+        coach = cls.query.get(coach_id)
+        if coach.team_id:
+            coach.team_id = None
+        db.session.delete(coach_id)
+        db.session.commit()        
+        
