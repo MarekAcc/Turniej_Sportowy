@@ -1,0 +1,41 @@
+{% extends "base_admin.html" %}
+
+{% block title %}
+Add match-event
+{% endblock %}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Dodaj match-event</h3>
+    <div class="form-group">
+        <label for="matches">Choose a match:</label>
+        <select name="match_id" id="match_id">
+            {% for match in matches %}
+            <option value="{{ match.id }}">
+                {{match.id}} {{ match.home_team.name }} vs {{ match.away_team.name }}
+                ({{ match.scoreHome }} - {{ match.scoreAway }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="players">Choose a player:</label>
+        <select name="player_id" id="player_id">
+            {% for player in players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{player.lastName}} ({{ player.team.name }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="players">Choose an event:</label>
+        <select name="eventType" id="eventType">
+            <option>goal</option>
+            <option>redCard</option>
+        </select>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

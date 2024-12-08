@@ -1,8 +1,8 @@
 
 from flask import Blueprint, render_template, request, flash
-from .models import Tournament,Team,Match, Coach, Player
+from .models import Tournament, Team, Match, Coach, Player
 from . import db
-from .services.create import create_player, create_tournament, create_team
+from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 
 views = Blueprint('views', __name__)
@@ -38,13 +38,17 @@ SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 
 """
 # Strona główna, która widzi kazdy niezalogowany uzytkownik, czyli KIBIC
+
+
 @views.route('/')
 def home():
 
-    players = Player.get_players(10)
-    for player in players:
-        print(player.firstName)
+    # players = Player.get_players(10) - testowanie metod klasowych
+    # for player in players:
+    #     print(player.firstName)
+
     return render_template("home.html", user=current_user)
+
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -57,14 +61,15 @@ def tournament_adder():
         if not tournamentName or not tournamentType or not tournamentStatus:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('create_tournament.html', user=current_user)
-        try:  
-            create_tournament(tournamentName,tournamentType, tournamentStatus)
+        try:
+            create_tournament(tournamentName, tournamentType, tournamentStatus)
             flash('Turniej został pomyślnie dodany!', 'success')
             return render_template("create_tournament.html", user=current_user)
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template("create_tournament.html", user=current_user)
     return render_template("create_tournament.html", user=current_user)
+
 
 @views.route('/new-player', methods=['GET', 'POST'])
 @login_required
@@ -78,7 +83,7 @@ def player_adder():
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('new_player.html', user=current_user)
         try:
-            create_player(firstName,lastName,age)
+            create_player(firstName, lastName, age)
             flash('Zawodnik został pomyślnie dodany!', 'success')
             return render_template('new_player.html', user=current_user)
         except ValueError as e:
@@ -87,14 +92,15 @@ def player_adder():
 
     return render_template("new_player.html", user=current_user)
 
-@views.route('/team-adder', methods=['GET','POST'])
+
+@views.route('/team-adder', methods=['GET', 'POST'])
 @login_required
 def team_adder():
     if request.method == 'POST':
         name = request.form.get('name')
         tournament = request.form.get('tournament')
         players = []
-        for i in range(1,17):
+        for i in range(1, 3):
             player = request.form.get(f'player{i}')
             if not player:
                 flash('Wszyscy zawodnicy są wymagani!', 'danger')
@@ -105,21 +111,55 @@ def team_adder():
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('register_team.html', user=current_user)
         try:
-            create_team(name,tournament,players)
+            create_team(name, tournament, players)
             flash('Druzyna została pomyślnie zarejestrowana!', 'success')
             return render_template("register_team.html", user=current_user)
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template("register_team.html", user=current_user)
-        
+
     return render_template("register_team.html", user=current_user)
-  
-@views.route('/match-adder', methods=['GET','POST'])
+
+
+@views.route('/match-adder', methods=['GET', 'POST'])
 @login_required
 def match_adder():
-    print("TODO")
+    if request.method == 'POST':
+        homeTeam_id = request.form.get('homeTeam_id')
+        awayTeam_id = request.form.get('awayTeam_id')
+        scoreHome = request.form.get('scoreHome')
+        scoreAway = request.form.get('scoreAway')
+        status = request.form.get('status')
 
-@views.route('/match-event-adder', methods=['GET','POST'])
+        if not homeTeam_id or not awayTeam_id:
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('register_match.html', user=current_user)
+
+        try:
+            create_match(homeTeam_id, awayTeam_id,
+                         scoreHome, scoreAway, status)
+            flash('Mecz został pomyślnie dodany!', 'success')
+        except ValueError as e:
+            flash(str(e), 'danger')
+
+    teams = Team.query.all()
+
+    return render_template(
+        "register_match.html",
+        teams=teams
+    )
+
+
+@views.route('/match-event-adder', methods=['GET', 'POST'])
 @login_required
 def match_event_adder():
-    print("TODO")
+    matches = Match.get_matches()
+    players = Player.get_players()
+    if request.method == "POST":
+        match_id = request.form.get('match_id')
+        player_id = request.form.get('player_id')
+        eventType = request.form.get('eventType')
+        create_match_event(eventType, match_id, player_id)
+        flash("Pomyślnie dodano match-event!", "success")
+        return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+    return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
