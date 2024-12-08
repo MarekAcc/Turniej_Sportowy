@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, request, flash
 from .models import Tournament,Team,Match, Coach, Player
 from . import db
-from .services.create import create_player, create_tournament, create_team
+from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 
 views = Blueprint('views', __name__)
@@ -41,9 +41,13 @@ SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 @views.route('/')
 def home():
 
-    players = Player.get_players(10)
-    for player in players:
-        print(player.firstName)
+
+    # try:
+    #     Team.delete_team(team_id=7)
+    # except ValueError as e:
+    #     print(f"Operacja nie powiodła się: {e}")
+    # for player in players:
+    #     print(player.firstName)
     return render_template("home.html", user=current_user)
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
@@ -53,7 +57,6 @@ def tournament_adder():
         tournamentName = request.form.get('tournamentName')
         tournamentType = request.form.get('tournamentType')
         tournamentStatus = request.form.get('tournamentStatus')
-
         if not tournamentName or not tournamentType or not tournamentStatus:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('create_tournament.html', user=current_user)
@@ -94,7 +97,7 @@ def team_adder():
         name = request.form.get('name')
         tournament = request.form.get('tournament')
         players = []
-        for i in range(1,17):
+        for i in range(1,5):
             player = request.form.get(f'player{i}')
             if not player:
                 flash('Wszyscy zawodnicy są wymagani!', 'danger')
@@ -114,12 +117,61 @@ def team_adder():
         
     return render_template("register_team.html", user=current_user)
   
-@views.route('/match-adder', methods=['GET','POST'])
+@views.route('/match-adder', methods=['GET', 'POST'])
 @login_required
 def match_adder():
-    print("TODO")
+    if request.method == 'POST':
+        homeTeam_id = request.form.get('homeTeam_id')
+        awayTeam_id = request.form.get('awayTeam_id')
+        scoreHome = request.form.get('scoreHome')
+        scoreAway = request.form.get('scoreAway')
+        status = request.form.get('status')
 
+        if not homeTeam_id or not awayTeam_id:
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('register_match.html', user=current_user)
+
+        try:
+            create_match(homeTeam_id, awayTeam_id,
+                         scoreHome, scoreAway, status)
+            flash('Mecz został pomyślnie dodany!', 'success')
+        except ValueError as e:
+            flash(str(e), 'danger')
+
+    teams = Team.query.all()
+
+    return render_template(
+        "register_match.html",
+        teams=teams
+    )
 @views.route('/match-event-adder', methods=['GET','POST'])
 @login_required
 def match_event_adder():
-    print("TODO")
+    matches = Match.get_matches()  
+    players = Player.get_players()  
+    if request.method == "POST":
+        match_id = int(request.form.get('match_id'))
+        player_id = int(request.form.get('player_id'))
+        eventType = request.form.get('eventType')
+
+        match = next((m for m in matches if m.id == match_id), None)
+        player = next((p for p in players if p.id == player_id), None)
+
+        if not match or not player:
+            flash("Nie znaleziono meczu lub gracza.", "error")
+            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+        # Sprawdź, czy gracz należy do jednej z drużyn w meczu
+        if player.team_id not in {match.homeTeam_id, match.awayTeam_id}:
+            flash("Wybrany gracz nie brał udziału w tym meczu.", "danger")
+            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+        # Utwórz event, jeśli gracz uczestniczył w meczu
+        try:
+            create_match_event(eventType, match_id, player_id)
+            flash("Pomyślnie dodano match-event!", "success")
+        except Exception as e:
+            flash(f"Nie udało się dodać match-event: {e}", "danger")
+
+        return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+    # Obsługa metody GET
+    return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)

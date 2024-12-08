@@ -4,46 +4,117 @@ from flask_login import UserMixin
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100),unique=True ,nullable=False)
-    type = db.Column(db.Enum('league', 'playoff', name='tournament_type_enum'), nullable=False)
-    status = db.Column(db.Enum('active','ended','canceled',name='tournament_status_enum'), nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    type = db.Column(db.Enum('league', 'playoff',
+                     name='tournament_type_enum'), nullable=False)
+    status = db.Column(db.Enum('active', 'ended', 'canceled',
+                       name='tournament_status_enum'), nullable=False)
 
     teams = db.relationship('Team', back_populates='tournament')
-    matches = db.relationship('Match', back_populates='tournament', cascade="all, delete-orphan")
-
+    matches = db.relationship(
+        'Match', back_populates='tournament', cascade="all, delete-orphan")
 
     # Jakaś obsluga błędów - raise ValueError('KOMUNIKAT')
+
     @classmethod
     def get_tournaments(cls, n=None, sort_by="name"):
         query = cls.query.order_by(getattr(cls, sort_by).asc())
         if n:
             query = query.limit(n)
         return query.all()
-    
+
     # TO DO obsługa błędów (co gdy nie znajdzie druzyny - raise ValueError('KOMUNIKAT'))
     @classmethod
     def find_tournament(cls, name):
         return cls.query.filter_by(name=name).first()
-    
-    # Funkcja dodająca druzyne do turnieju(jezeli turniej jest active to nie mozna dodawac(musi byc cancelled albo jakos zawieszony
-    # Dodawanie druzyny przez nazwę(NIE PRZEZ ID, zeby nie trzeba pisac konwersji z frontendu)
-    def add_team():
-        print("TO DO")
 
-    def get_teams():
-        print("TO DO")
+    # Funkcja dodająca druzyne do turnieju(jezeli turniej jest active to nie mozna dodawac)
+    # Dodawanie druzyny przez nazwę(NIE PRZEZ ID, zeby nie trzeba pisac konwersji z frontendu)
+    @classmethod
+    def add_team(cls, name, team_name):
+        # Wyszukujemy turniej po ID
+        tournament = cls.query.filter_by(name=name).first()
+        if not tournament:
+            raise ValueError(f"Turniej o nazwie {name} nie istnieje.")
+
+        # Sprawdzamy, czy turniej jest w stanie "active"
+        if tournament.status == 'active':
+            raise ValueError("Nie można dodać drużyny do aktywnego turnieju.")
+
+        # Wyszukujemy drużynę po nazwie
+        team = Team.query.filter_by(name=team_name).first()
+        if not team:
+            raise ValueError(f"Drużyna o nazwie {team_name} nie istnieje.")
+
+        # Dodajemy drużynę do turnieju
+        if team in tournament.teams:
+            raise ValueError(
+                f"Drużyna {team_name} już znajduje się w turnieju {name}.")
+
+        tournament.teams.append(team)
+        db.session.commit()
+
+    @classmethod
+    def get_teams(cls):
+        return cls.query.first().teams
 
     # obsluga bledow
-    def remove_team_from_tournament():
-        print("TO DO")
+    @classmethod
+    def remove_team_from_tournament(cls, name, team_name):
+        # Wyszukujemy turniej po nazwie
+        tournament = cls.query.filter_by(name=name).first()
+        if not tournament:
+            raise ValueError(f"Turniej o nazwie {name} nie istnieje.")
+
+        # Sprawdzamy, czy turniej nie jest zakończony
+        if tournament.status == 'ended':
+            raise ValueError(
+                "Nie można usuwać drużyn z zakończonego turnieju.")
+
+        # Wyszukujemy drużynę po nazwie
+        team = Team.query.filter_by(name=team_name).first()
+        if not team:
+            raise ValueError(f"Drużyna o nazwie {team_name} nie istnieje.")
+
+        if team not in tournament.teams:
+            raise ValueError(
+                f"Drużyna {team_name} nie znajduje się w turnieju {name}."
+            )
+
+        tournament.teams.remove(team)
+
+        # try:
+        #     db.session.commit()
+        # except IntegrityError:
+        #     db.session.rollback()
+        #     raise ValueError("Wystąpił błąd przy usuwaniu drużyny z turnieju.")
 
     # Transakcja, trzeba wykonac inne operacje, upewnic się i wgl
-    def finish():
-        print("TO DO")
-    
+
+    @classmethod
+    def finish(cls, name):
+        tournament = cls.query.filter_by(name=name).first()
+        if not tournament:
+            raise ValueError("Turniej nie istnieje.")
+
+        if tournament.status == 'ended':
+            raise ValueError("Turniej już został zakończony.")
+
+        tournament.status = 'ended'
+        db.session.commit()
     # Anulowanie turnieju, przerwanie go mimo, ze sie nie zakonczyl
-    def cancel():
-        print("TO DO")
+
+    @classmethod
+    def cancel(cls, name):
+        tournament = cls.query.filter_by(name=name).first()
+        if not tournament:
+            raise ValueError("Turniej nie istnieje.")
+
+        if tournament.status == 'canceled':
+            raise ValueError("Turniej już został anulowany.")
+
+        tournament.status = 'canceled'
+        db.session.commit()
     
 
 class Team(db.Model):
@@ -69,23 +140,77 @@ class Team(db.Model):
     
     @classmethod
     def find_team(cls, name):
-        print("TO DO")
+        """Znajduje drużynę na podstawie nazwy."""
+        return cls.query.filter_by(name=name).first()
     
-    def get_players():
-        # TO DO
-        print("TO DO")
-
-    # cos do edytowania byc moze kilka roznych funkcji - ZATANOWIC SIE NAD TYM
-    def edit_data():
-        print("TO DO")
-
+    def get_players(cls, name):
+        team = cls.query.get(name)
+        if not team:
+            return 0
+        return team.players
+       
+    @classmethod
+    def edit_data(cls, team_id, name=None):
+        """Edytuje dane drużyny. Nazwa i ID turnieju są opcjonalne."""
+        
+        team = cls.query.get(team_id)
+        if not team:
+            raise ValueError("Drużyna o podanym ID nie istnieje.")
+        
+        if name:
+            team.name = name
+        db.session.commit()
+    
     # Bezpieczne usuwanie druzyny z bazy danych(odpiac zawodnikow i trenrea, sprawdzic czy nie rozgrywa turnieju itp.)
-    def delete_team():
-        print("TO DO")
+    @classmethod
+    def delete_team(cls, team_id):
+        """
+        Usuwa drużynę z bazy danych. Przed usunięciem:
+        - Odłącza zawodników i trenera.
+        - Sprawdza, czy drużyna uczestniczy w turnieju.
+        """
+        if not team_id:
+            raise ValueError("Musisz podać ID drużyny do usunięcia.")
+        
+        team = cls.query.get(team_id)
+        if not team:
+            raise ValueError("Drużyna o podanym ID nie istnieje.")
+        
+        if team.tournament_id:
+            raise ValueError("Nie można usunąć drużyny uczestniczącej w turnieju.")
 
+        # Odłącz zawodników i trenera
+        for player in team.players:
+            player.team_id = None
+        if team.teamCoach:
+            team.teamCoach.team_id = None
+
+        db.session.delete(team)
+        db.session.commit()
+        
     # Zwracanie statystyk i danych ???
-    def get_data():
-        print("TO DO")
+    @classmethod
+    def get_data(cls, team_id):
+        """
+        Zwraca statystyki i dane drużyny, takie jak liczba zawodników, trener, mecze.
+        """
+        team = cls.query.get(team_id)
+        if not team:
+            raise ValueError("Drużyna o podanym ID nie istnieje.")
+
+        return {
+            "name": team.name,
+            "tournament": team.tournament.name if team.tournament else None,
+            "coach": team.teamCoach.name if team.teamCoach else None,
+            "players": {
+                "firstName" : [player.firstName for player in team.players],
+                "lastName ": [player.lastName for player in team.players]
+                    },
+            "matches": {
+                "home": [match.id for match in team.home_matches],
+                "away": [match.id for match in team.away_matches],
+            }
+        }    
         
 
 class Player(db.Model):
@@ -156,6 +281,8 @@ class MatchEvent(db.Model):
 
     match = db.relationship('Match',back_populates='matchEvents')
     player = db.relationship('Player', back_populates='playerEvents')
+    
+    
 
     @classmethod
     def get_match_events(cls, n=None, sort_by="id"):
@@ -165,8 +292,6 @@ class MatchEvent(db.Model):
         return query.all()
 
     # TO DO metody takie jak przy torunamencie itp.
-
-
 
 class Coach(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)

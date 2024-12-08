@@ -14,7 +14,7 @@ Create team
         <input type="text" class="form-control" id="tournament_id" name="tournament" placeholder="Podaj nazwę drużyny">
     </div>
     <div class="form-group">
-        {% for i in range(1, 17) %}
+        {% for i in range(1, 5) %}
         <label for="zawodnik{{i}}">Zawodnik {{i}}</label>
         <input type="text" class="form-control" id="zawodnik{{i}}" name="player{{i}}" placeholder="Imię i nazwisko">
       {% endfor %}

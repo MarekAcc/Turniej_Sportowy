@@ -1,0 +1,56 @@
+{% extends "base_admin.html" %}
+
+{% block title %}
+New Match
+{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+
+    <div class="form-group">
+        <label for="matchhomeTeam_id">Home Team</label>
+        <select class="form-control" id="matchhomeTeam_id" name="homeTeam_id">
+            <option value="" disabled selected>Wybierz drużynę gospodarzy</option>
+            {% for team in teams %}
+            <option value="{{ team.id }}">{{ team.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="matchawayTeam_id">Away Team</label>
+        <select class="form-control" id="matchawayTeam_id" name="awayTeam_id">
+            <option value="" disabled selected>Wybierz drużynę gości</option>
+            {% for team in teams %}
+            <option value="{{ team.id }}">{{ team.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="matchscoreHome">Gole drużyny gospodarzy</label>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" id="matchscoreHome"
+            name="scoreHome" placeholder="Podaj ilość goli gospodarzy">
+
+    </div>
+
+    <div class="form-group">
+        <label for="matchscoreAway">Gole drużyny gości</label>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" id="matchscoreAway"
+            name="scoreAway" placeholder="Podaj ilość goli gości">
+    </div>
+
+    <div class="form-group">
+        <label for="playerAge">Status</label>
+        <select name="status" id="matchstatus" class="form-control">
+            <option value="planned">Zaplanowne</option>
+            <option value="ended">Skończone</option>
+
+        </select>
+
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

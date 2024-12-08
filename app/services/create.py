@@ -1,6 +1,6 @@
 # Tutaj dodać wszystkie funkcje do tworzenia instancji Modeli
 # Operacje na modelach dodać jako metody
-from app.models import Player, Tournament, Team, Coach
+from app.models import Player, Tournament, Team, Coach, Match,MatchEvent
 from app import db
 
 def create_player(firstName, lastName, age):
@@ -93,8 +93,46 @@ def create_coach(firstName, lastName, age, login, password1, password2):
     return new_coach
 
 
-def create_match():
-    print("TODO")
+def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
+    # Pobranie drużyn z bazy danych
+    home_team = Team.query.get(homeTeam_id)
+    away_team = Team.query.get(awayTeam_id)
 
-def create_match_event():
-    print("TODO")
+    # Sprawdzenie, czy drużyny należą do tego samego turnieju
+    if home_team.tournament_id != away_team.tournament_id:
+        raise ValueError("Drużyny muszą należeć do tego samego turnieju!")
+
+    if home_team == away_team:
+        raise ValueError("Drużyny nie moga być takie same!")
+    # Ustalenie tournament_id na podstawie drużyn
+    tournament_id = home_team.tournament_id
+
+    # Utworzenie nowego meczu
+    new_match = Match(
+        homeTeam_id=homeTeam_id,
+        awayTeam_id=awayTeam_id,
+        scoreHome=int(scoreHome),
+        scoreAway=int(scoreAway),
+        status=status,
+        tournament_id=tournament_id
+    )
+
+    # Zapis do bazy danych
+    db.session.add(new_match)
+    db.session.commit()
+
+    return new_match
+def create_match_event(eventType, match_id, player_id):
+    
+    
+    new_match_event = MatchEvent(
+    eventType = eventType,
+    match_id = match_id,
+    player_id = player_id
+    )
+    
+    
+    db.session.add(new_match_event)
+    db.session.commit()
+    
+    return new_match_event
