@@ -7,6 +7,19 @@ from flask_login import login_user, login_required, logout_user, current_user
 
 views = Blueprint('views', __name__)
 
+"""
+TO DO:
+- ogolny front Kibica
+- ciąglosc tworzenia Turnieju(dodawanie druzyn po) MATI
+- status tworzenia turnieju(zeby nie byl od razu active) MATI
+- aktualizacja statystyk zawodnikow po meczach i mmatch eventach IGOR
+- Home Admina 
+- Home trenera IGOR
+- Wymiana zawodnikow w druzynie(trener)(zawodnik juz istniejący w bazie) IGOR
+- zmiana pozycji zawodnika(gdy jest czerwona kartka to nie moze byc 'field') IGOR
+- harmonogram i sędzia MAREK
+- punktacja, tabela, drabinka MAREK
+"""
 """ 
 Punkt widzenia kibica:
 
