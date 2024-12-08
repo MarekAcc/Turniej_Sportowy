@@ -237,12 +237,22 @@ class Player(db.Model):
     # Wyszukiwanie zawodnika w bazie, szukanie po imieniu i nazwisku (UWAGA! Mogą istniec dwaj zawodnicy 
     # co się tak samo nazwyają i maja tyle samo lat - jakoś to rozwiązac np. wyswietlic obydwoch i poinformowac o tym usera)
     @classmethod
-    def find_player(cls, id):
-        print("TO DO")
-
+    def find_player(cls, player_id):
+        return cls.query.order_by(id = player_id).first()
+    @classmethod
     # Bezpieczne usuwanie zawodnika
-    def delete_player():
-        print("TO DO")
+    def delete_player(cls, player_id):
+        if not player_id:
+            raise ValueError("Musisz podać ID drużyny do usunięcia.")
+        player = cls.query.get(player_id)
+        if player.team_id != None:
+            raise ValueError("Zawodnik należy do drużyny. ")
+        db.session.delete(player_id)
+        db.session.commit()
+        
+    
+        
+        
 
 
 class Match(db.Model):
