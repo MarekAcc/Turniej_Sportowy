@@ -7,13 +7,13 @@ New Match
 {% block content %}
 
 <form method="POST">
-
+    <h3 align="center">Dodaj mecz</h3>
     <div class="form-group">
         <label for="matchhomeTeam_id">Home Team</label>
         <select class="form-control" id="matchhomeTeam_id" name="homeTeam_id">
             <option value="" disabled selected>Wybierz drużynę gospodarzy</option>
             {% for team in teams %}
-            <option value="{{ team.id }}">{{ team.name }}</option>
+            <option value="{{ team.id }}">{{ team.name }} ({{ team.tournament.name}})</option>
             {% endfor %}
         </select>
     </div>
@@ -23,7 +23,7 @@ New Match
         <select class="form-control" id="matchawayTeam_id" name="awayTeam_id">
             <option value="" disabled selected>Wybierz drużynę gości</option>
             {% for team in teams %}
-            <option value="{{ team.id }}">{{ team.name }}</option>
+            <option value="{{ team.id }}">{{ team.name }} ({{ team.tournament.name}})</option>
             {% endfor %}
         </select>
     </div>
