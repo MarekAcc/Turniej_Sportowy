@@ -373,14 +373,6 @@ class Match(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_matches(cls, tournament_name):
-        tournament = Tournament.query.filter_by(name=tournament_name).first()
-        if not tournament:
-            raise ValueError(f"Turniej {tournament_name} nie istnieje.")
-
-        return cls.query.filter_by(tournament_id=tournament.id).all()
-
-    @classmethod
     def finish_match(cls, home_team_name, away_team_name, tournament_name, score_home, score_away):
         match = cls.find_match(home_team_name, away_team_name, tournament_name)
         if match.status == 'ended':
