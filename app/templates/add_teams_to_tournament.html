@@ -1,0 +1,22 @@
+{% extends "base_admin.html" %}
+
+{% block title %}
+Add teams to tournament
+{% endblock %}
+{% block content %}
+<form method="POST">
+    {% for i in range(num_teams) %}
+        <div class="form-group">
+            <label for="team_{{ i }}">Drużyna {{ i+1 }}</label>
+            <select class="form-control" id="team_{{ i }}" name="team_{{ i }}">
+                <option value="" disabled selected>Wybierz drużynę</option>
+                {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }} ({{ team.tournament.name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Dodaj Drużyny</button>
+</form>
+
+{% endblock %}

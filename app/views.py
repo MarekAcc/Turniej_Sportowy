@@ -55,13 +55,25 @@ SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 def home():
 
 
-    # try:
-    #     Team.delete_team(team_id=7)
-    # except ValueError as e:
-    #     print(f"Operacja nie powiodła się: {e}")
-    # for player in players:
-    #     print(player.firstName)
+    try:
+        # Tournament.remove_team_from_tournament('Tur1','Dru1')
+        # Tournament.remove_team_from_tournament('Tur1','Dru3')
+        # Tournament.remove_team_from_tournament('Tur1','')
+        # Tournament.remove_team_from_tournament('Tur1','')
+        Tournament.remove_team_from_tournament('Tur1','')
+    except ValueError as e:
+        print(f"Operacja nie powiodła się: {e}")
+
     return render_template("home.html", user=current_user)
+
+
+@views.route('/home-admin')
+@login_required
+def home_admin():
+    tournament = Tournament.find_tournament('A Klasa')
+    teams = Tournament.get_teams(tournament.id)
+    return render_template("home_admin.html", user=current_user, tournament=tournament, teams=teams)
+    
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -70,9 +82,15 @@ def tournament_adder():
         tournamentName = request.form.get('tournamentName')
         tournamentType = request.form.get('tournamentType')
         numTeams = request.form.get('numTeams')  # Liczba drużyn
-        if not tournamentName or not tournamentType or not numTeams:
+        numTeams = int(numTeams)
+        if not tournamentName or not tournamentType or not numTeams or numTeams < 2:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('create_tournament.html', user=current_user)
+        
+        if tournamentType == 'Turniej pucharowy' and (numTeams <= 0 or (numTeams & (numTeams - 1)) != 0):
+            flash('Ilość druzyn w turnieju PLAY-OFF musi być potęgą liczby 2!', 'danger')
+            return render_template('create_tournament.html', user=current_user)
+        
         try:  
             new_tournament = create_tournament(tournamentName,tournamentType, 'planned')
             flash('Turniej został pomyślnie dodany!', 'success')
@@ -198,6 +216,17 @@ def match_adder():
         "register_match.html",
         teams=teams
     )
+
+@views.route('/manage-match', methods=['GET', 'POST'])
+@login_required
+def manage_match():
+    match = Match.find_match_by_id(1)
+    tournament = Tournament.find_tournament_by_id(match.tournament_id)
+    homeTeam = Team.find_team_by_id(match.homeTeam_id)
+    awayTeam= Team.find_team_by_id(match.awayTeam_id)
+
+    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam,awayTeam=awayTeam)
+
 @views.route('/match-event-adder', methods=['GET','POST'])
 @login_required
 def match_event_adder():

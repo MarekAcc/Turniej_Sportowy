@@ -1,0 +1,52 @@
+{%extends "base_admin.html"%}
+{%block title%}
+Admin page
+{%endblock title%}
+{% block content %}
+<h1>Turniej: {{ tournament.name }}</h1>
+<p>Typ turnieju: {{ tournament.type }}</p>
+
+<!-- Warunkowe wyświetlanie tabeli ligowej -->
+{% if tournament.type == 'league' %}
+<h2>Tabela ligowa</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Drużyna</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ team.name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Warunkowe wyświetlanie drabinki turniejowej -->
+{% elif tournament.type == 'playoff' %}
+<h2>Drabinka turniejowa</h2>
+<div class="bracket">
+    {% for round, matches in playoff_bracket.items() %}
+    <div class="round">
+        <h3>Runda {{ round }}</h3>
+        <ul class="match-list">
+            {% for match in matches %}
+            <li class="match">
+                <span class="team home">{{ match.home_team.name }}</span>
+                <span class="score">{{ match.scoreHome or '-' }}</span>
+                vs
+                <span class="score">{{ match.scoreAway or '-' }}</span>
+                <span class="team away">{{ match.away_team.name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>Nieznany typ turnieju.</p>
+{% endif %}
+{% endblock content %}
