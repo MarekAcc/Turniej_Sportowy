@@ -1,0 +1,32 @@
+{%extends "base_admin.html"%}
+{%block title%}
+Manage tournament
+{%endblock title%}
+{% block content %}
+<h1>
+    Turniej: {{ tournament.name }}
+    <p>Typ turnieju: {{ tournament.type }}</p>
+    <p>Status: {{ tournament.status }}</p>
+</h1>
+
+<div class="actions">
+    <!-- Przerwij turniej -->
+    <form method="POST" action="{{ url_for('views.cancel_tournament', tournament_id=tournament.id) }}">
+        <button type="submit" class="btn btn-danger">Przerwij turniej (Anuluj)</button>
+    </form>
+
+    </br>
+    <!-- Zakończ turniej -->
+    <form method="POST" action="{{ url_for('views.end_tournament', tournament_id=tournament.id) }}">
+        <button type="submit" class="btn btn-warning">Zakończ turniej</button>
+    </form>
+
+    <br />
+    <!-- Losuj kolejną rundę -->
+    {% if tournament.type == 'playoff' %}
+    <form method="POST" action="{{ url_for('views.draw_next_round', tournament_id=tournament.id) }}">
+        <button type="submit" class="btn btn-primary">Losuj kolejną rundę</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock content %}

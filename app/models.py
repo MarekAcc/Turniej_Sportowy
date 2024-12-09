@@ -125,6 +125,7 @@ class Tournament(db.Model):
 
         tournament.status = 'canceled'
         db.session.commit()
+    
     @classmethod
     def generate_matches(cls, tournament):
         matches = []
@@ -160,6 +161,7 @@ class Tournament(db.Model):
     
         db.session.add_all(matches)
         db.session.commit()
+    
     @classmethod
     def generate_next_round(cls,tournament):
         previous_matches = Match.query.filter_by(tournament_id=tournament.id, status='ended').all()

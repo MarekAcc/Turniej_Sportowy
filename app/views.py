@@ -55,14 +55,12 @@ SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 def home():
 
 
-    try:
-        # Tournament.remove_team_from_tournament('Tur1','Dru1')
-        # Tournament.remove_team_from_tournament('Tur1','Dru3')
-        # Tournament.remove_team_from_tournament('Tur1','')
-        # Tournament.remove_team_from_tournament('Tur1','')
-        Tournament.remove_team_from_tournament('Tur1','')
-    except ValueError as e:
-        print(f"Operacja nie powiodła się: {e}")
+    # try:
+    #     team = Team.find_team('')
+    #     tournament = Tournament.find_tournament_by_id(team.tournament_id)
+    #     Tournament.remove_team_from_tournament(tournament.name,team.name)
+    # except ValueError as e:
+    #     print(f"Operacja nie powiodła się: {e}")
 
     return render_template("home.html", user=current_user)
 
@@ -72,8 +70,16 @@ def home():
 def home_admin():
     tournament = Tournament.find_tournament('A Klasa')
     teams = Tournament.get_teams(tournament.id)
+
     return render_template("home_admin.html", user=current_user, tournament=tournament, teams=teams)
     
+@views.route('/show-tournament', methods=['GET', 'POST'])
+@login_required
+def show_tournament():
+    tournament = Tournament.find_tournament_by_id(30)
+    teams = Tournament.get_teams(tournament.id)
+    return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams)
+
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -112,7 +118,6 @@ def teams_to_tournament_adder():
     # Pobieramy wszystkie druzyny
     all_teams = Team.get_teams_without_tournament()
 
-    
     if request.method == 'POST':
         teams = []
         for i in range(num_teams):
@@ -136,6 +141,51 @@ def teams_to_tournament_adder():
     # Tworzymy dynamiczne formularze do dodania drużyn
     return render_template("add_teams_to_tournament.html", user=current_user, num_teams=num_teams,teams=all_teams)
 
+@views.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
+@login_required
+def choose_tournament_to_manage():
+    all_tournaments = Tournament.query.all()
+    if request.method == 'POST':
+        tournament_id = request.form.get('tournament_id')
+        return redirect(url_for('views.manage_tournament', tournament_id=tournament_id))
+
+    return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
+
+@views.route('/manage-tournament', methods=['GET', 'POST'])
+@login_required
+def manage_tournament():
+    tournament_id = request.args.get('tournament_id', type=int)
+    tournament = Tournament.find_tournament_by_id(tournament_id)
+
+    if request.method == 'POST':
+        print("ajaja")
+
+    return render_template('manage_tournament.html',tournament=tournament)
+
+@views.route('/cancel-tournament/<int:tournament_id>', methods=['POST'])
+@login_required
+def cancel_tournament(tournament_id):
+    # Obsługa przerwania turnieju
+    tournament = Tournament.find_tournament_by_id(tournament_id)
+    # Tournament.cancel(tournament.name)
+    flash(f'Przerwano turniej {tournament.name}!', 'success')
+    return redirect(url_for('views.home_admin'))
+
+@views.route('/end-tournament/<int:tournament_id>', methods=['POST'])
+@login_required
+def end_tournament(tournament_id):
+    # Obsługa zakończenia turnieju
+    tournament = Tournament.find_tournament_by_id(tournament_id)
+
+    flash(f'Zakończono turniej {tournament.name}!', 'success')
+    return redirect(url_for('views.home_admin'))
+
+@views.route('/draw-next-round/<int:tournament_id>', methods=['POST'])
+@login_required
+def draw_next_round(tournament_id):
+    # Obsługa losowania kolejnej rundy
+    tournament = Tournament.find_tournament_by_id(tournament_id)
+    pass
 
 @views.route('/new-player', methods=['GET', 'POST'])
 @login_required
@@ -217,15 +267,39 @@ def match_adder():
         teams=teams
     )
 
+@views.route('/choose-match-to-manage', methods=['GET', 'POST'])
+@login_required
+def choose_match_to_manage():
+    all_matches = Match.query.all()
+    if request.method == 'POST':
+        match_id = request.form.get('match_id')
+        return redirect(url_for('views.manage_match', match_id=match_id))
+
+    return render_template('choose_match_to_manage.html',matches=all_matches)
+
 @views.route('/manage-match', methods=['GET', 'POST'])
 @login_required
 def manage_match():
-    match = Match.find_match_by_id(1)
+    match_id = request.args.get('match_id', type=int)
+    match = Match.find_match_by_id(match_id)
+
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
     homeTeam = Team.find_team_by_id(match.homeTeam_id)
     awayTeam= Team.find_team_by_id(match.awayTeam_id)
 
-    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam,awayTeam=awayTeam)
+    if request.method == 'POST':
+        scoreHome = request.form.get('scoreHome')
+        scoreAway = request.form.get('scoreAway')
+
+        match.scoreHome = scoreHome
+        match.scoreAway = scoreAway
+        match.status = 'ended'
+
+        # db.session.commit()
+        flash('Dodano wynik meczu!', 'success')
+        return redirect(url_for('views.home_admin'))
+
+    return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
 @views.route('/match-event-adder', methods=['GET','POST'])
 @login_required
