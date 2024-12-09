@@ -1,15 +1,31 @@
 from app.models import Team
 from app import db
 
-def create_team(name, tournament_id=None):
-    if tournament_id:
-        new_team = Team(name=name, tournament_id=tournament_id)
-        db.session.add(new_team)
-        db.session.commit()
-    else:
-        new_team = Team(name=name)
-        db.session.add(new_team)
-        db.session.commit()
+def delete_team(name):
+    team = Team.query.filter_by(name=name).first()
+    if not team:
+        raise ValueError(f"Druzyna o nazwie '{name}' NIE istnieje!")
+    
+    for player in team.players:
+        player.team_id = None 
 
-    return new_team
+    # # Usuń powiązanego trenera (jeśli istnieje)
+    # if team.teamCoach:
+    #     db.session.delete(team.teamCoach)
 
+    # # Usuń mecze, w których drużyna brała udział
+    # for match in team.home_matches + team.away_matches:
+    #     db.session.delete(match)
+    
+    db.session.delete(team)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise ValueError(f"Błąd podczas usuwania drużyny '{name}': {e}")
+    
+
+#Funkcja do zwracania n druzyn. (obsluga błędów, co gdy nie ma tylu coachow, funkcje sortowania(np alfabetycznie, albo inne opcje)
+def get_teams(n):
+    # TO DO
+    print(n)

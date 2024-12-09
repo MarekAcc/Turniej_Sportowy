@@ -1,0 +1,6 @@
+/migrations/
+/venv/
+notes.txt
+/app/.DS_Store
+.DS_Store
+/app/services/__pycache__

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Strona Trenerska{% endblock %}
+
+{% block content %}
+<h3>Strona główna - zarządzaj zawodnikami</h3>
+<div class="menu">
+    <button onclick="window.location.href='{{ url_for('views.swap_players') }}'">Wymień zawodnika</button>
+    <button onclick="window.location.href='{{ url_for('views.change_positions') }}'">Zmień ustawienie</button>
+
+</div>
+{% endblock %}

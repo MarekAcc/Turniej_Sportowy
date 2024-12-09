@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ team.name }} - Szczegóły
+{% endblock %}
+
+{% block content %}
+<h1>{{ team.name }}</h1>
+
+<!-- Mecze w turnieju -->
+<h2>Mecze</h2>
+<ul>
+    {% for match in matches %}
+    <li><a href="{{ url_for('views.match_details', match_id=match.id) }}">{{ match.home_team.name }} vs {{
+            match.away_team.name }}</a> - {{ match.date }}</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+{% endblock %}

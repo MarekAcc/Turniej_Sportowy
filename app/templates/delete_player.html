@@ -1,0 +1,23 @@
+{%extends "base_admin.html"%}
+{%block title%}
+Delete player
+{%endblock title%}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Wybierz zawodnika</h3>
+    <div class="form-group">
+        <label for="matches">Choose a player:</label>
+        <select name="player_id" id="player_id">
+            {% for player in players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{player.lastName}}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-danger">Wyrejestruj zawodnika(Usuń)</button>
+</form>
+
+{% endblock content %}
