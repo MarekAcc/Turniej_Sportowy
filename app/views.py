@@ -191,38 +191,6 @@ def match_adder():
         teams=teams
     )
 
-@views.route('/match-event-adder', methods=['GET', 'POST'])
-@login_required
-def match_event_adder():
-    matches = Match.get_matches()
-    players = Player.get_players()
-    if request.method == "POST":
-        match_id = int(request.form.get('match_id'))
-        player_id = int(request.form.get('player_id'))
-        eventType = request.form.get('eventType')
-
-        match = next((m for m in matches if m.id == match_id), None)
-        player = next((p for p in players if p.id == player_id), None)
-
-        if not match or not player:
-            flash("Nie znaleziono meczu lub gracza.", "error")
-            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-        # Sprawdź, czy gracz należy do jednej z drużyn w meczu
-        if player.team_id not in {match.homeTeam_id, match.awayTeam_id}:
-            flash("Wybrany gracz nie brał udziału w tym meczu.", "danger")
-            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-        # Utwórz event, jeśli gracz uczestniczył w meczu
-        try:
-            create_match_event(eventType, match_id, player_id)
-            flash("Pomyślnie dodano match-event!", "success")
-        except Exception as e:
-            flash(f"Nie udało się dodać match-event: {e}", "danger")
-
-        return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-
-    # Obsługa metody GET
-    return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-
 #--------------COACH OD IGORA--------------------
 
 @views.route('/coach-home', methods=['GET','POST'])

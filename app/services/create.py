@@ -119,7 +119,6 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
 
     return new_match
 
-
 def create_match_event(eventType, match_id, player_id):
 
     new_match_event = MatchEvent(
@@ -127,6 +126,14 @@ def create_match_event(eventType, match_id, player_id):
         match_id=match_id,
         player_id=player_id
     )
+
+    player = Player.query.get(player_id)
+    if eventType == "goal":
+        player.goals+=1
+    elif eventType == "redCard":
+        player.status = "suspended"
+    
+        
 
     db.session.add(new_match_event)
     db.session.commit()

@@ -10,6 +10,7 @@ admin = Blueprint('admin', __name__)
 @admin.route('/home-admin')
 @login_required
 def home_admin():
+
     return render_template("home_admin.html", user=current_user)
 
 # Dodawanie zawodnika do bazy
@@ -118,7 +119,6 @@ def delete_team():
             return render_template('delete_team.html',teams=all_teams)
 
     return render_template('delete_team.html',teams=all_teams)
-
 
 @admin.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -286,3 +286,34 @@ def manage_match():
 
     return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
+@admin.route('/match-event-adder', methods=['GET', 'POST'])
+@login_required
+def match_event_adder():
+    matches = Match.get_matches()
+    players = Player.get_players()
+    if request.method == "POST":
+        match_id = int(request.form.get('match_id'))
+        player_id = int(request.form.get('player_id'))
+        eventType = request.form.get('eventType')
+
+        match = next((m for m in matches if m.id == match_id), None)
+        player = next((p for p in players if p.id == player_id), None)
+
+        if not match or not player:
+            flash("Nie znaleziono meczu lub gracza.", "error")
+            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+        # Sprawdź, czy gracz należy do jednej z drużyn w meczu
+        if player.team_id not in {match.homeTeam_id, match.awayTeam_id}:
+            flash("Wybrany gracz nie brał udziału w tym meczu.", "danger")
+            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+        # Utwórz event, jeśli gracz uczestniczył w meczu
+        try:
+            create_match_event(eventType, match_id, player_id)
+            flash("Pomyślnie dodano match-event!", "success")
+        except Exception as e:
+            flash(f"Nie udało się dodać match-event: {e}", "danger")
+
+        return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+    # Obsługa metody GET
+    return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
