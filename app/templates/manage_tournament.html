@@ -20,6 +20,11 @@ Manage tournament
     <form method="POST" action="{{ url_for('views.end_tournament', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-warning">Zakończ turniej</button>
     </form>
+    </br>
+    <!-- Usuń turniej z bazy -->
+    <form method="POST" action="{{ url_for('views.delete_tournament', tournament_id=tournament.id) }}">
+        <button type="submit" class="btn btn-danger">Usuń turniej z bazy</button>
+    </form>
 
     <br />
     <!-- Losuj kolejną rundę -->

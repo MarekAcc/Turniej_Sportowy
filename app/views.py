@@ -4,6 +4,7 @@ from .models import Tournament,Team,Match, Coach, Player
 from . import db
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
+from collections import defaultdict
 
 views = Blueprint('views', __name__)
 
@@ -50,20 +51,9 @@ TRENER - dane i druzyna
 SĘDZIA - dane, statystyki i mecze(zaplanowane i rozergrane).
 
 """
-# Strona główna, która widzi kazdy niezalogowany uzytkownik, czyli KIBIC
 @views.route('/')
 def home():
-
-
-    # try:
-    #     team = Team.find_team('')
-    #     tournament = Tournament.find_tournament_by_id(team.tournament_id)
-    #     Tournament.remove_team_from_tournament(tournament.name,team.name)
-    # except ValueError as e:
-    #     print(f"Operacja nie powiodła się: {e}")
-
     return render_template("home.html", user=current_user)
-
 
 @views.route('/home-admin')
 @login_required
@@ -78,8 +68,15 @@ def home_admin():
 def show_tournament():
     tournament = Tournament.find_tournament_by_id(30)
     teams = Tournament.get_teams(tournament.id)
-    return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams)
+    # Grupowanie meczów według rund
+    matches_by_round = defaultdict(list)
+    for match in tournament.matches:
+        matches_by_round[match.round].append(match)
 
+    # Sortowanie rund
+    sorted_matches_by_round = dict(sorted(matches_by_round.items()))
+
+    return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams,matches_by_round=sorted_matches_by_round)
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -180,6 +177,12 @@ def end_tournament(tournament_id):
     flash(f'Zakończono turniej {tournament.name}!', 'success')
     return redirect(url_for('views.home_admin'))
 
+@views.route('/delete-tournament/<int:tournament_id>', methods=['POST'])
+@login_required
+def delete_tournament(tournament_id):   
+    Tournament.delete(tournament_id)
+    return redirect(url_for('views.home_admin'))
+
 @views.route('/draw-next-round/<int:tournament_id>', methods=['POST'])
 @login_required
 def draw_next_round(tournament_id):
@@ -201,12 +204,45 @@ def player_adder():
         try:
             create_player(firstName,lastName,age)
             flash('Zawodnik został pomyślnie dodany!', 'success')
-            return render_template('new_player.html', user=current_user)
+            return redirect(url_for('views.home_admin'))
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template('new_player.html', user=current_user)
 
-    return render_template("new_player.html", user=current_user)
+    return render_template("new_player.html", user
+                           =current_user)
+    
+@views.route('/delete-player', methods=['GET', 'POST'])
+@login_required
+def delete_player():
+    all_players = Player.query.all()
+    if request.method == 'POST':
+        player_id = request.form.get('player_id')
+        try:
+            Player.delete_player(player_id)
+            flash('Pomyślnie wyrejestrowano zawodnika!', 'success')
+            return redirect(url_for('views.home_admin'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('delete_player.html', players=all_players)
+
+    return render_template('delete_player.html',players=all_players)
+
+@views.route('/delete-team', methods=['GET', 'POST'])
+@login_required
+def delete_team():
+    all_teams = Team.query.all()
+    if request.method == 'POST':
+        team_id = request.form.get('team_id')
+        try:
+            Team.delete_team(team_id)
+            flash('Pomyślnie wyrejestrowano druzyne!', 'success')
+            return redirect(url_for('views.home_admin'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('delete_team.html',teams=all_teams)
+
+    return render_template('delete_team.html',teams=all_teams)
 
 @views.route('/team-adder', methods=['GET','POST'])
 @login_required
