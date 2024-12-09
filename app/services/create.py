@@ -28,38 +28,42 @@ def create_tournament(name, type, status):
     else:
         raise ValueError('Błąd formatu!')
     
-
     if status == 'Aktywny':
         status = 'active'
     elif status == 'Zakończony':
         status = 'ended'
     elif status == 'Anulowany':
         status = 'canceled'
-    elif status == 'planned':
-        status = 'planned'
     else:
         raise ValueError('Błąd statusu!')
     
     new_tournament = Tournament(name=name, type=type, status=status)
     db.session.add(new_tournament)
     db.session.commit()
-    return new_tournament
 
-def create_team(name, players):
-    if len(name) > 100 or len(name) < 4:
-        raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
+def create_team(name, tournament_name, players):
+    if len(name) > 100:
+        raise ValueError('Nazwa druzyny jest za długa!')
 
     if Team.query.filter_by(name=name).first():
         raise ValueError(f"Druzyna o nazwie '{name}' już istnieje!")
     
-    new_team = Team(name=name)
+    tournament = Tournament.query.filter_by(name=tournament_name).first()
+    if not tournament:
+        raise ValueError(f"Turniej o nazwie '{tournament_name}' NIE ISTNIEJE!")
+    
+    new_team = Team(name=name, tournament_id=tournament.id)
     db.session.add(new_team)
     db.session.commit()
 
     for p in players:
-        if p.team_id != None:
-            raise ValueError(f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
-        p.team_id = new_team.id
+        first_name, last_name = p.split(" ",1)
+        player = Player.query.filter_by(firstName=first_name, lastName=last_name).first()
+        if not player:
+            raise ValueError(f"Zawodnik '{first_name} {last_name}' NIE ISTNIEJE!")
+        if player.team_id != None:
+            raise ValueError(f"Zawodnik '{first_name} {last_name}' jest juz przypisany do innej druzyny!")
+        player.team_id = new_team.id
         
     db.session.commit()
 
@@ -112,21 +116,43 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
         status=status,
         tournament_id=tournament_id
     )
-
+    
+    
+    '''Dodać do aktualizuj status meczu'''
+    players_home = home_team.players
+    players_away = away_team.players
+    for player in players_home:
+        if player.position =="field":
+            player.appearances+=1
+        if player.status == "suspended":
+            player.status == "active"
+    for player in players_away:
+        if player.position == "field":
+            player.appearances+=1 
+        if player.status == "suspended":
+            player.status == "active"
+    # dla playera appearances++ za udział w meczu
     # Zapis do bazy danych
     db.session.add(new_match)
     db.session.commit()
 
     return new_match
 def create_match_event(eventType, match_id, player_id):
-    
+    # dla playera gol++ jeśli strzelił gola.
+    # dla playera zmiana statusu jeśli dostał czerwoną kartkę.
     
     new_match_event = MatchEvent(
     eventType = eventType,
     match_id = match_id,
     player_id = player_id
     )
+    player = Player.query.get(player_id)
+    if eventType == "goal":
+        player.goals+=1
+    elif eventType == "redCard":
+        player.status = "suspended"
     
+        
     
     db.session.add(new_match_event)
     db.session.commit()

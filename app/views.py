@@ -12,11 +12,11 @@ TO DO:
 - ogolny front Kibica
 - ciąglosc tworzenia Turnieju(dodawanie druzyn po) ZROBIONE
 - status tworzenia turnieju(zeby nie byl od razu active) MATI
-- aktualizacja statystyk zawodnikow po meczach i mmatch eventach IGOR
+- aktualizacja statystyk zawodnikow po meczach i mmatch eventach IGOR done - działa (przetestowane)
 - Home Admina 
 - Home trenera IGOR
-- Wymiana zawodnikow w druzynie(trener)(zawodnik juz istniejący w bazie) IGOR
-- zmiana pozycji zawodnika(gdy jest czerwona kartka to nie moze byc 'field') IGOR
+- Wymiana zawodnikow w druzynie(trener)(zawodnik juz istniejący w bazie) IGOR done - działą(przetestowane)
+- zmiana pozycji zawodnika(gdy jest czerwona kartka to nie moze byc 'field') IGOR done działa (przetestowane)
 - harmonogram i sędzia MAREK
 - punktacja, tabela, drabinka MAREK
 """
@@ -60,7 +60,9 @@ def home():
         # Tournament.remove_team_from_tournament('Tur1','Dru3')
         # Tournament.remove_team_from_tournament('Tur1','')
         # Tournament.remove_team_from_tournament('Tur1','')
-        Tournament.remove_team_from_tournament('Tur1','')
+        # Tournament.remove_team_from_tournament('Tur1','')
+        # Team.swap_players(int(1),int(5)) works
+        Player.change_position(1, "field")
     except ValueError as e:
         print(f"Operacja nie powiodła się: {e}")
 
