@@ -334,7 +334,7 @@ def change_positions():
             return render_template("change_positions.html", user = current_user, players =players)
         if player.team_id == None:
             flash("Ten zawodnik nie należy do żadnej drużyny", "danger")
-            return render_template("change_positions", "danger")
+            return render_template("change_positions.html", user = current_user, players =players)
         Player.change_position(player_id,position)
         flash("Zmiana pozycji zakończona! ", "success")
         return render_template("change_positions.html", user = current_user, players = players)
