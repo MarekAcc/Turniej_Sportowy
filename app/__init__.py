@@ -14,14 +14,10 @@ def create_app():
 
     app.config['SECRET_KEY'] = 'nice'
 
-<<<<<<< HEAD
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:admin@localhost:5432/tournament'
-=======
     # Igor i Mati
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:admin@localhost:5432/tournament'
-    #Marek
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:Wasa126x@localhost:5432/tournament'
->>>>>>> Marek
+    # Marek
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:admin@localhost:5432/tournament'
 
     db.init_app(app)
     migrate.init_app(app, db)

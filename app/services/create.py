@@ -1,10 +1,6 @@
 # Tutaj dodać wszystkie funkcje do tworzenia instancji Modeli
 # Operacje na modelach dodać jako metody
-<<<<<<< HEAD
 from app.models import Player, Tournament, Team, Coach, Match, MatchEvent
-=======
-from app.models import Player, Tournament, Team, Coach, Match,MatchEvent
->>>>>>> Marek
 from app import db
 
 
@@ -35,84 +31,32 @@ def create_tournament(name, type, status):
         type = 'playoff'
     else:
         raise ValueError('Błąd formatu!')
-<<<<<<< HEAD
-=======
-    
->>>>>>> Marek
-
-    if status == 'Aktywny':
-        status = 'active'
-    elif status == 'Zakończony':
-        status = 'ended'
-    elif status == 'Anulowany':
-        status = 'canceled'
-    elif status == 'planned':
-        status = 'planned'
-    else:
-        raise ValueError('Błąd statusu!')
 
     new_tournament = Tournament(name=name, type=type, status=status)
     db.session.add(new_tournament)
     db.session.commit()
     return new_tournament
 
-<<<<<<< HEAD
 
-def create_team(name, tournament_name, players):
-    if len(name) > 100:
-        raise ValueError('Nazwa drużyny jest za długa!')
-
-    if Team.query.filter_by(name=name).first():
-        raise ValueError(f"Drużyna o nazwie '{name}' już istnieje!")
-
-    tournament = Tournament.query.filter_by(name=tournament_name).first()
-    if not tournament:
-        raise ValueError(f"Turniej o nazwie '{tournament_name}' NIE ISTNIEJE!")
-
-    player_objects = []
-    for p in players:
-        first_name, last_name = p.split(" ", 1)
-        player = Player.query.filter_by(
-            firstName=first_name, lastName=last_name).first()
-        if not player:
-            raise ValueError(
-                f"Zawodnik '{first_name} {last_name}' NIE ISTNIEJE!")
-        if player.team_id is not None:
-            raise ValueError(
-                f"Zawodnik '{first_name} {last_name}' jest już przypisany do innej drużyny!")
-        player_objects.append(player)
-
-    # Wszystkie warunki są spełnione, można utworzyć drużynę
-    new_team = Team(name=name, tournament_id=tournament.id)
-=======
 def create_team(name, players):
     if len(name) > 100 or len(name) < 4:
         raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
 
     if Team.query.filter_by(name=name).first():
         raise ValueError(f"Druzyna o nazwie '{name}' już istnieje!")
-    
+
     new_team = Team(name=name)
->>>>>>> Marek
     db.session.add(new_team)
-    db.session.flush()  # Pobranie ID nowej drużyny bez zatwierdzania transakcji
-
-    # Przypisanie zawodników do drużyny
-    for player in player_objects:
-        player.team_id = new_team.id
-
-    # Zatwierdzenie całej transakcji
     db.session.commit()
 
-<<<<<<< HEAD
-=======
     for p in players:
         if p.team_id != None:
-            raise ValueError(f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
+            raise ValueError(
+                f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
         p.team_id = new_team.id
-        
+
     db.session.commit()
->>>>>>> Marek
+
 
 def create_coach(firstName, lastName, age, login, password1, password2):
     if len(firstName) > 50:
@@ -173,7 +117,6 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
     db.session.commit()
 
     return new_match
-<<<<<<< HEAD
 
 
 def create_match_event(eventType, match_id, player_id):
@@ -188,19 +131,3 @@ def create_match_event(eventType, match_id, player_id):
     db.session.commit()
 
     return new_match_event
-=======
-def create_match_event(eventType, match_id, player_id):
-    
-    
-    new_match_event = MatchEvent(
-    eventType = eventType,
-    match_id = match_id,
-    player_id = player_id
-    )
-    
-    
-    db.session.add(new_match_event)
-    db.session.commit()
-    
-    return new_match_event
->>>>>>> Marek
