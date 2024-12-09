@@ -64,7 +64,7 @@ def home():
     #     print(player.firstName)
     return render_template("home.html", user=current_user)
 
-# Na potrzebe strony głównej
+# Na potrzebe strony głównej ---------------------------------------------------------------
 
 
 @views.route('/tournaments')
@@ -173,16 +173,30 @@ def tournament_details(tournament_id):
 
 @views.route('/team/<int:team_id>')
 def team_details(team_id):
+    # Pobieramy drużynę na podstawie ID
     team = Team.query.get(team_id)
 
     if not team:
         flash("Drużyna nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
 
-    # Pobieramy mecze drużyny w turnieju
+    # Pobieramy trenera drużyny
+    coach = team.teamCoach
+
+    # Pobieramy zawodników drużyny
+    players = team.players
+
+    # Pobieramy mecze drużyny (zarówno jako gospodarze, jak i goście)
     matches = team.home_matches + team.away_matches
 
-    return render_template("team_details.html", team=team, matches=matches, user=current_user)
+    return render_template(
+        "team_details.html",
+        team=team,
+        coach=coach,
+        players=players,
+        matches=matches,
+        user=current_user
+    )
 
 
 @views.route('/match/<int:match_id>')
@@ -196,7 +210,7 @@ def match_details(match_id):
     # Pobieramy wydarzenia związane z meczem
     match_events = MatchEvent.query.filter_by(match_id=match_id).all()
 
-    return render_template("match_details.html", match=match, match_events=match_events)
+    return render_template("match_details.html", match=match, match_events=match_events, user=current_user)
 # FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
 
 
