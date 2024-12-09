@@ -351,16 +351,19 @@ def delete_team():
     return render_template('delete_team.html',teams=all_teams)
 
 
+# Dodawanie nowej drużyny
 @views.route('/team-adder', methods=['GET', 'POST'])
 @login_required
 def team_adder():
-    # Pobierz zawodnikow bez druzyny
+    # Pobranie listy zawodników bez przypisanej drużyny
     players = Player.get_players_without_team()
 
+    # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
-        name = request.form.get('name')
-        team_players = []
-        # Pobieranie zawodnikow z formularza
+        name = request.form.get('name')  # Pobranie nazwy drużyny z formularza
+        team_players = []  # Lista zawodników w drużynie
+
+        # Pobranie danych zawodników z formularza
         for i in range(1, 3):
             player_id = request.form.get(f'player_id_{i}')
             if not player_id:
@@ -369,17 +372,22 @@ def team_adder():
             player = Player.find_player_by_id(player_id)
             team_players.append(player)
 
+        # Sprawdzenie, czy nazwa drużyny została podana
         if not name:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template("register_team.html", user=current_user, players=players)
+
         try:
+            # Próba utworzenia drużyny
             create_team(name, team_players)
-            flash('Druzyna została pomyślnie zarejestrowana!', 'success')
+            flash('Drużyna została pomyślnie zarejestrowana!', 'success')
             return render_template("register_team.html", user=current_user, players=players)
         except ValueError as e:
-            flash(str(e), 'danger')
+            # Obsługa błędów podczas tworzenia drużyny
+            flash(str(e), 'danger') 
             return render_template("register_team.html", user=current_user, players=players)
 
+    # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
     return render_template("register_team.html", user=current_user, players=players)
 
 
