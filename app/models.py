@@ -2,11 +2,12 @@ from . import db
 from flask_login import UserMixin
 from sqlalchemy.exc import IntegrityError
 from itertools import permutations
+from random import shuffle
 
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(101), unique=True, nullable=False)
+    name = db.Column(db.String(102), unique=True, nullable=False)
     type = db.Column(db.Enum('league', 'playoff',
                      name='tournament_type_enum'), nullable=False)
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
@@ -16,8 +17,6 @@ class Tournament(db.Model):
     matches = db.relationship(
         'Match', back_populates='tournament', cascade="all, delete-orphan")
 
-    # Jakaś obsluga błędów - raise ValueError('KOMUNIKAT')
-
     @classmethod
     def get_tournaments(cls, n=None, sort_by="name"):
         query = cls.query.order_by(getattr(cls, sort_by).asc())
@@ -25,12 +24,12 @@ class Tournament(db.Model):
             query = query.limit(n)
         return query.all()
 
-    # TO DO obsługa błędów (co gdy nie znajdzie druzyny - raise ValueError('KOMUNIKAT'))
     @classmethod
     def find_tournament(cls, name):
-        if not name:
-            raise ValueError('Brak wyników')
-        return cls.query.filter_by(name=name).first()
+        t = cls.query.filter_by(name=name).first()
+        if not t:
+            raise ValueError("Nie istnieje turniej o takiej nazwie.")
+        return t
 
     # Szukanie turnieju po ID
     @classmethod
@@ -70,7 +69,6 @@ class Tournament(db.Model):
             raise ValueError(f"Nie znaleziono turnieju o ID {id}.")
         return tournament.teams
 
-    # obsluga bledow
     @classmethod
     def remove_team_from_tournament(cls, name, team_name):
         # Wyszukujemy turniej po nazwie
@@ -79,9 +77,9 @@ class Tournament(db.Model):
             raise ValueError(f"Turniej o nazwie {name} nie istnieje.")
 
         # Sprawdzamy, czy turniej nie jest zakończony
-        if tournament.status == 'ended':
+        if tournament.status == 'ended' or tournament.status == 'active':
             raise ValueError(
-                "Nie można usuwać drużyn z zakończonego turnieju.")
+                "Nie można usuwać drużyn z zakończonego lub aktywnego turnieju.")
 
         # Wyszukujemy drużynę po nazwie
         team = Team.query.filter_by(name=team_name).first()
@@ -94,14 +92,13 @@ class Tournament(db.Model):
             )
 
         tournament.teams.remove(team)
+        team.tournament_id = None
 
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
             raise ValueError("Wystąpił błąd przy usuwaniu drużyny z turnieju.")
-
-    # Transakcja, trzeba wykonac inne operacje, upewnic się i wgl
 
     @classmethod
     def finish(cls, name):
@@ -114,7 +111,6 @@ class Tournament(db.Model):
 
         tournament.status = 'ended'
         db.session.commit()
-    # Anulowanie turnieju, przerwanie go mimo, ze sie nie zakonczyl
 
     @classmethod
     def cancel(cls, name):
@@ -129,22 +125,78 @@ class Tournament(db.Model):
         db.session.commit()
 
     @classmethod
+    def delete(cls, tournament_id):
+        tournament = cls.query.get(tournament_id)
+
+        for team in tournament.teams:
+            team.tournament_id = None
+
+        for match in tournament.matches:
+            db.session.delete(match)
+
+        db.session.delete(tournament)
+        db.session.commit()
+
+    @classmethod
     def generate_matches(cls, tournament):
         matches = []
         teams = Tournament.get_teams(tournament.id)
-        for home_team, away_team in permutations(teams, 2):
-            # Mecz 1: Gospodarzem jest home_team
-            match1 = Match(
-                homeTeam_id=home_team.id,
-                awayTeam_id=away_team.id,
+        if tournament.type == 'league':
+            for home_team, away_team in permutations(teams, 2):
+                # Mecz 1: Gospodarzem jest home_team
+                match1 = Match(
+                    homeTeam_id=home_team.id,
+                    awayTeam_id=away_team.id,
+                    tournament_id=tournament.id,
+                    status='planned',
+                    scoreHome=None,
+                    scoreAway=None,
+                    round=None
+                )
+                matches.append(match1)
+        elif tournament.type == 'playoff':
+            shuffle(teams)
+            # Generowanie meczów pierwszej rundy
+            for i in range(0, len(teams), 2):
+                home_team = teams[i]
+                away_team = teams[i + 1]
+                match = Match(
+                    homeTeam_id=home_team.id,
+                    awayTeam_id=away_team.id,
+                    tournament_id=tournament.id,
+                    status='planned',
+                    scoreHome=None,
+                    scoreAway=None,
+                    round=1
+                )
+                matches.append(match)
+
+        db.session.add_all(matches)
+        db.session.commit()
+
+    @classmethod
+    def generate_next_round(cls, tournament, round):
+        previous_matches = Match.query.filter_by(
+            tournament_id=tournament.id,
+            round=round-1,
+            status='ended'
+        ).all()
+        winners = [match.home_team if match.scoreHome >
+                   match.scoreAway else match.away_team for match in previous_matches]
+        new_matches = []
+        for i in range(0, len(winners), 2):
+            match = Match(
+                homeTeam_id=winners[i].id,
+                awayTeam_id=winners[i + 1].id,
                 tournament_id=tournament.id,
                 status='planned',
                 scoreHome=None,
-                scoreAway=None
+                scoreAway=None,
+                round=round + 1
             )
-            matches.append(match1)
+            new_matches.append(match)
 
-        db.session.add_all(matches)
+        db.session.add_all(new_matches)
         db.session.commit()
 
 
@@ -316,17 +368,12 @@ class Player(db.Model):
     # Bezpieczne usuwanie zawodnika
 
     @classmethod
-    def delete_player(cls, first_name, last_name):
+    def delete_player(cls, player_id):
         # Wyszukujemy zawodnika po imieniu i nazwisku
-        player = cls.query.filter_by(
-            firstName=first_name, lastName=last_name).first()
+        player = cls.query.get(player_id)
         if not player:
             raise ValueError(
-                f"Zawodnik o imieniu {first_name} i nazwisku {last_name} nie istnieje.")
-
-        # Sprawdzamy, czy zawodnik jest aktywny
-        if player.status == 'active':
-            raise ValueError("Nie można usunąć aktywnego zawodnika.")
+                f"Zawodnik nie istnieje.")
 
         # Sprawdzamy, czy zawodnik jest przypisany do jakiegoś zespołu
         if player.team:
@@ -344,6 +391,7 @@ class Match(db.Model):
     scoreAway = db.Column(db.Integer)
     status = db.Column(
         db.Enum('planned', 'ended', name='match_status_enum'), nullable=False)
+    round = db.Column(db.Integer)
 
     homeTeam_id = db.Column(
         db.Integer, db.ForeignKey('team.id'), nullable=False)
@@ -393,6 +441,13 @@ class Match(db.Model):
                 "Nie znaleziono meczu z podanymi drużynami w danym turnieju.")
 
         return match
+
+    @classmethod
+    def find_match_by_id(cls, id):
+        m = cls.query.get(id)
+        if not m:
+            raise ValueError("Nie istnieje mecz o takim ID.")
+        return m
 
     @classmethod
     def add_match(cls, home_team_name, away_team_name, tournament_name):

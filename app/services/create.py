@@ -9,6 +9,8 @@ def create_player(firstName, lastName, age):
         raise ValueError('Imię jest za długie!')
     if len(lastName) > 50:
         raise ValueError('Nazwisko jest za długie!')
+    if int(age) < 12 or int(age) > 99:
+        raise ValueError('Nieprawidłowy wiek!')
 
     new_player = Player(firstName=firstName, lastName=lastName,
                         age=int(age), status='active')
