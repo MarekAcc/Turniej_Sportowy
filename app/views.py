@@ -260,3 +260,82 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+
+@views.route('/coach-home', methods=['GET','POST'])
+@login_required
+def coach_home():
+    return render_template("trener_p.html", user =current_user)
+
+@views.route('/swap-players', methods=['GET', 'POST'])
+@login_required
+def swap_players():
+    players = Player.get_players()
+    if request.method == 'POST':
+        # Fetch and validate input data
+        new_player_id = request.form.get("new_player_id")
+        player_id = request.form.get("player_id")
+
+        if not new_player_id or not player_id:
+            flash("Należy wypełnić oba pola. ", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        try:
+            new_player_id = int(new_player_id)
+            player_id = int(player_id)
+        except ValueError:
+            flash("Wybierz istniejących zawodników.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        # Fetch players from the database by ID
+        new_player = Player.query.get(new_player_id)
+        player = Player.query.get(player_id)
+
+        if not new_player or not player:
+            flash("Jeden lub obydwaj zawodnicy nie istnieją.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        # Validation logic for swapping players
+        if player.team_id == new_player.team_id:
+            flash("Wybrani zawodnicy należą do tej samej drużyny.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        if new_player.team_id is not None:
+            flash("Nowy gracz ma już przypisaną drużynę.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        try:
+            Team.swap_players(player_id, new_player_id)
+            flash("Wymiana zawodnika zakończona!", "success")
+        except ValueError as e:
+            flash(str(e), "danger")
+        except Exception as e:
+            flash("An unexpected error occurred. Please try again.", "danger")
+
+        return render_template("swap_players.html", user=current_user, players=players)
+
+    return render_template("swap_players.html", user=current_user, players=players)
+
+@views.route('/change-positions', methods=['GET','POST'])
+@login_required
+def change_positions():
+    players = Player.get_players()
+    if request.method == "POST":
+       
+        player_id = request.form.get("player_id")
+        position = request.form.get("position")
+
+        position = str(position)
+        player_id = int(player_id)
+
+        player = Player.query.get(player_id)
+        if player.position == position:
+            flash("Zawodnik już jest na tej pozycji", "danger")
+            return render_template("change_positions.html", user = current_user, players =players)
+        if player.team_id == None:
+            flash("Ten zawodnik nie należy do żadnej drużyny", "danger")
+            return render_template("change_positions", "danger")
+        Player.change_position(player_id,position)
+        flash("Zmiana pozycji zakończona! ", "success")
+        return render_template("change_positions.html", user = current_user, players = players)
+    return render_template("change_positions.html", user = current_user, players = players)
