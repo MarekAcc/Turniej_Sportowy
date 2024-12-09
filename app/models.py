@@ -28,6 +28,8 @@ class Tournament(db.Model):
     # TO DO obsługa błędów (co gdy nie znajdzie druzyny - raise ValueError('KOMUNIKAT'))
     @classmethod
     def find_tournament(cls, name):
+        if not name:
+            raise ValueError('Brak wyników')
         return cls.query.filter_by(name=name).first()
 
     # Szukanie turnieju po ID
@@ -573,6 +575,13 @@ class Coach(db.Model, UserMixin):
         if n:
             query = query.limit(n)
         return query.all()
+
+    @classmethod
+    def find_coach(cls, query):
+        """Szukamy trenera po imieniu i nazwisku."""
+        return cls.query.filter(
+            (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
+        ).all()
 
     # Bezpieczne usuwanie trenera
     @classmethod

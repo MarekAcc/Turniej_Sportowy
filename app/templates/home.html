@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}
-Home
-{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-Kontencik
+<h3>Strona główna - wyszukaj statystyki dla wybranej kategorii</h3>
+<div class="menu">
+    <button onclick="window.location.href='{{ url_for('views.tournaments') }}'">Turnieje</button>
+    <button onclick="window.location.href='{{ url_for('views.teams') }}'">Drużyny</button>
+    <button onclick="window.location.href='{{ url_for('views.players') }}'">Zawodnicy</button>
+    <button onclick="window.location.href='{{ url_for('views.coaches') }}'">Trenerzy</button>
+    <button onclick="window.location.href='{{ url_for('views.referees') }}'">Sędziowie</button>
+</div>
 {% endblock %}

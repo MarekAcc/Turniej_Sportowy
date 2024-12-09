@@ -1,6 +1,6 @@
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import Tournament, Team, Match, Coach, Player
+from .models import Tournament, Team, Match, Coach, Player, MatchEvent
 from . import db
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
@@ -63,6 +63,141 @@ def home():
     # for player in players:
     #     print(player.firstName)
     return render_template("home.html", user=current_user)
+
+# Na potrzebe strony głównej
+
+
+@views.route('/tournaments')
+def tournaments():
+    query = request.args.get('query')
+
+    # Jeśli zapytanie jest obecne, używamy metody `find_tournament` z modelu
+    if query:
+        try:
+            # Szukamy pojedynczego turnieju po nazwie
+            tournament = Tournament.find_tournament(query)
+            # Jeśli turniej został znaleziony, zwróć w liście
+            tournaments = [tournament] if tournament else []
+        except ValueError as e:
+            # Obsługa błędów, np. gdy nie znaleziono turnieju
+            flash(str(e), 'danger')
+            tournaments = []
+    else:
+        # Jeśli brak zapytania, pobieramy wszystkie turnieje
+        tournaments = Tournament.get_tournaments()
+
+    return render_template("tournaments.html", tournaments=tournaments, user=current_user)
+
+
+@views.route('/teams')
+def teams():
+    query = request.args.get('query')
+
+    # Jeśli zapytanie jest obecne, używamy metody `find_team` z modelu
+    if query:
+        try:
+            # Szukamy drużyny po nazwie
+            team = Team.find_team(query)
+            # Jeśli drużyna została znaleziona, zwróć ją w liście
+            teams = [team] if team else []
+        except ValueError as e:
+            # Obsługa błędów, np. gdy nie znaleziono drużyny
+            flash(str(e), 'danger')
+            teams = []
+    else:
+        # Jeśli brak zapytania, pobieramy wszystkie drużyny
+        teams = Team.get_teams()
+
+    return render_template("teams.html", teams=teams, user=current_user)
+
+
+@views.route('/players')
+def players():
+    query = request.args.get('query')
+
+    if query:
+        first_name, *last_name_parts = query.split(' ', 1)
+        last_name = last_name_parts[0] if last_name_parts else ""
+
+        # Wykorzystanie istniejącej metody do wyszukiwania
+        try:
+            players = Player.find_player(
+                first_name=first_name, last_name=last_name)
+        except ValueError as e:
+            players = []
+            message = str(e)
+        else:
+            message = None
+    else:
+
+        players = Player.get_players()
+        message = None
+
+    return render_template("players.html", players=players, message=message, user=current_user)
+
+
+@views.route('/coaches')
+def coaches():
+    query = request.args.get('query')
+
+    if query:
+        # Szukamy trenera po pełnym imieniu i nazwisku
+        coaches = Coach.find_coach(query)
+    else:
+        coaches = Coach.get_coaches()
+
+    return render_template("coaches.html", coaches=coaches, user=current_user)
+
+
+@views.route('/referees')
+def referees():
+    return render_template("referees.html", referees=referees, user=current_user)
+
+
+@views.route('/tournament/<int:tournament_id>')
+def tournament_details(tournament_id):
+    tournament = Tournament.query.get(tournament_id)
+
+    if not tournament:
+        flash("Turniej nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    # Pobieramy drużyny w turnieju
+    teams = tournament.teams
+
+    # Pobieramy mecze rozegrane i zaplanowane w turnieju
+    matches = Match.query.filter((Match.tournament_id == tournament_id)).all()
+
+    return render_template("tournament_details.html", tournament=tournament, teams=teams, matches=matches, user=current_user)
+
+
+@views.route('/team/<int:team_id>')
+def team_details(team_id):
+    team = Team.query.get(team_id)
+
+    if not team:
+        flash("Drużyna nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    # Pobieramy mecze drużyny w turnieju
+    matches = team.home_matches + team.away_matches
+
+    return render_template("team_details.html", team=team, matches=matches, user=current_user)
+
+
+@views.route('/match/<int:match_id>')
+def match_details(match_id):
+    match = Match.query.get(match_id)
+
+    if not match:
+        flash("Mecz nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    # Pobieramy wydarzenia związane z meczem
+    match_events = MatchEvent.query.filter_by(match_id=match_id).all()
+
+    return render_template("match_details.html", match=match, match_events=match_events)
+# FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
 
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
@@ -208,6 +343,17 @@ def match_adder():
         "register_match.html",
         teams=teams
     )
+
+
+@views.route('/manage-match', methods=['GET', 'POST'])
+@login_required
+def manage_match():
+    match = Match.find_match_by_id(1)
+    tournament = Tournament.find_tournament_by_id(match.tournament_id)
+    homeTeam = Team.find_team_by_id(match.homeTeam_id)
+    awayTeam = Team.find_team_by_id(match.awayTeam_id)
+
+    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam, awayTeam=awayTeam)
 
 
 @views.route('/match-event-adder', methods=['GET', 'POST'])

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ tournament.name }} - Szczegóły
+{% endblock %}
+
+{% block content %}
+<h1>{{ tournament.name }}</h1>
+
+<!-- Tabela ligowa -->
+<h2>Tabela Ligowa</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Drużyna</th>
+            <th>Wyniki</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr>
+            <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
+            <td><!-- Tutaj wyniki drużyny w turnieju --></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Drabinka (Playoff) -->
+<h2>Drabinka</h2>
+<!-- Tutaj wyświetlimy drabinkę turnieju, zależnie od jego formatu -->
+
+<!-- Mecze -->
+<h2>Mecze</h2>
+<ul>
+    {% for match in matches %}
+    <li><a href="{{ url_for('views.match_details', match_id=match.id) }}">{{ match.home_team.name }} vs {{
+            match.away_team.name }}</a> - {{ match.date }}</li>
+    {% else %}
+    <li>Brak meczy</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+{% endblock %}
