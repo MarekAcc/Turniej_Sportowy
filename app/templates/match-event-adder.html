@@ -12,7 +12,7 @@ Add match-event
         <select name="match_id" id="match_id">
             {% for match in matches %}
             <option value="{{ match.id }}">
-                {{match.id}}  {{ match.home_team.name }} vs {{ match.away_team.name }} 
+                {{match.id}} {{ match.home_team.name }} vs {{ match.away_team.name }}
                 ({{ match.scoreHome }} - {{ match.scoreAway }})
             </option>
             {% endfor %}

@@ -7,7 +7,7 @@ from random import shuffle
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(101), unique=True, nullable=False)
     type = db.Column(db.Enum('league', 'playoff',
                      name='tournament_type_enum'), nullable=False)
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
@@ -52,18 +52,18 @@ class Tournament(db.Model):
 
         if not teams:
             raise ValueError(f"Brak druzyn")
-        
+
         for team in teams:
             if team in tournament.teams:
                 raise ValueError(
-                f"Drużyna {team.name} już znajduje się w turnieju {name}.")
+                    f"Drużyna {team.name} już znajduje się w turnieju {name}.")
             tournament.teams.append(team)
             team.tournament_id = tournament.id
 
         db.session.commit()
 
     @classmethod
-    def get_teams(cls,id):
+    def get_teams(cls, id):
         tournament = cls.query.get(id)  # Pobierz turniej po ID
         if not tournament:
             raise ValueError(f"Nie znaleziono turnieju o ID {id}.")
@@ -201,17 +201,19 @@ class Tournament(db.Model):
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100),unique=True ,nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
 
-    tournament_id = db.Column(db.Integer,db.ForeignKey('tournament.id'))
+    tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'))
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
 
     teamCoach = db.relationship('Coach', back_populates='team')
-    
+
     # Relacje do meczów
-    home_matches = db.relationship("Match", foreign_keys="Match.homeTeam_id", back_populates="home_team")
-    away_matches = db.relationship("Match", foreign_keys="Match.awayTeam_id", back_populates="away_team")
+    home_matches = db.relationship(
+        "Match", foreign_keys="Match.homeTeam_id", back_populates="home_team")
+    away_matches = db.relationship(
+        "Match", foreign_keys="Match.awayTeam_id", back_populates="away_team")
 
     @classmethod
     def get_teams(cls, n=None, sort_by="name"):
@@ -219,17 +221,17 @@ class Team(db.Model):
         if n:
             query = query.limit(n)
         return query.all()
-        
+
     @classmethod
     def get_teams_without_tournament(cls):
         # Zwracamy wszystkich graczy, którzy nie mają przypisanego team_id
         return cls.query.filter(cls.tournament_id == None).all()
-    
+
     @classmethod
     def find_team(cls, name):
         """Znajduje drużynę na podstawie nazwy."""
         return cls.query.filter_by(name=name).first()
-    
+
     # Znajduje druzyne po ID
     @classmethod
     def find_team_by_id(cls, id):
@@ -237,25 +239,25 @@ class Team(db.Model):
         if not t:
             raise ValueError("Nie istnieje druzyna o takim ID.")
         return t
-    
+
     def get_players(cls, name):
         team = cls.query.get(name)
         if not team:
             return 0
         return team.players
-       
+
     @classmethod
     def edit_data(cls, team_id, name=None):
         """Edytuje dane drużyny. Nazwa i ID turnieju są opcjonalne."""
-        
+
         team = cls.query.get(team_id)
         if not team:
             raise ValueError("Drużyna o podanym ID nie istnieje.")
-        
+
         if name:
             team.name = name
         db.session.commit()
-    
+
     # Bezpieczne usuwanie druzyny z bazy danych(odpiac zawodnikow i trenrea, sprawdzic czy nie rozgrywa turnieju itp.)
     @classmethod
     def delete_team(cls, team_id):
@@ -266,13 +268,14 @@ class Team(db.Model):
         """
         if not team_id:
             raise ValueError("Musisz podać ID drużyny do usunięcia.")
-        
+
         team = cls.query.get(team_id)
         if not team:
             raise ValueError("Drużyna o podanym ID nie istnieje.")
-        
+
         if team.tournament_id:
-            raise ValueError("Nie można usunąć drużyny uczestniczącej w turnieju.")
+            raise ValueError(
+                "Nie można usunąć drużyny uczestniczącej w turnieju.")
 
         # Odłącz zawodników i trenera
         for player in team.players:
@@ -282,7 +285,7 @@ class Team(db.Model):
 
         db.session.delete(team)
         db.session.commit()
-        
+
     # Zwracanie statystyk i danych ???
     @classmethod
     def get_data(cls, team_id):
@@ -298,15 +301,16 @@ class Team(db.Model):
             "tournament": team.tournament.name if team.tournament else None,
             "coach": team.teamCoach.name if team.teamCoach else None,
             "players": {
-                "firstName" : [player.firstName for player in team.players],
+                "firstName": [player.firstName for player in team.players],
                 "lastName ": [player.lastName for player in team.players]
-                    },
+            },
             "matches": {
                 "home": [match.id for match in team.home_matches],
                 "away": [match.id for match in team.away_matches],
             }
-        }    
-        
+        }
+
+
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     firstName = db.Column(db.String(50), nullable=False)
@@ -329,7 +333,7 @@ class Player(db.Model):
         if n:
             query = query.limit(n)
         return query.all()
-    
+
     @classmethod
     def get_players_without_team(cls):
         # Zwracamy wszystkich graczy, którzy nie mają przypisanego team_id
@@ -352,7 +356,7 @@ class Player(db.Model):
                 f"Nie znaleziono zawodnika o imieniu {first_name} i nazwisku {last_name}.")
 
         return players
-    
+
     # Znajduje zawodnika po ID
     @classmethod
     def find_player_by_id(cls, id):
@@ -361,6 +365,7 @@ class Player(db.Model):
             raise ValueError("Nie istnieje zawodnik o takim ID.")
         return p
     # Bezpieczne usuwanie zawodnika
+
     @classmethod
     def delete_player(cls, player_id):
         # Wyszukujemy zawodnika po imieniu i nazwisku
@@ -606,14 +611,14 @@ class MatchEvent(db.Model):
                
 class Coach(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    firstName = db.Column(db.String(50),nullable=False)
-    lastName = db.Column(db.String(50),nullable=False)
+    firstName = db.Column(db.String(50), nullable=False)
+    lastName = db.Column(db.String(50), nullable=False)
     age = db.Column(db.Integer)
-    team_id = db.Column(db.Integer,db.ForeignKey('team.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates='teamCoach')
 
-    login = db.Column(db.String(30),nullable=False)
-    password = db.Column(db.String(50),nullable=False)
+    login = db.Column(db.String(30), nullable=False)
+    password = db.Column(db.String(50), nullable=False)
 
     @classmethod
     def get_coaches(cls, n=None, sort_by="lastName"):
@@ -621,6 +626,13 @@ class Coach(db.Model,UserMixin):
         if n:
             query = query.limit(n)
         return query.all()
+
+    @classmethod
+    def find_coach(cls, query):
+        """Szukamy trenera po imieniu i nazwisku."""
+        return cls.query.filter(
+            (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
+        ).all()
 
     # Bezpieczne usuwanie trenera
     @classmethod
@@ -631,5 +643,4 @@ class Coach(db.Model,UserMixin):
         if coach.team_id:
             coach.team_id = None
         db.session.delete(coach_id)
-        db.session.commit()        
-        
+        db.session.commit()
