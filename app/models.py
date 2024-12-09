@@ -1,6 +1,7 @@
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.exc import IntegrityError
+from itertools import permutations
 
 
 class Tournament(db.Model):
@@ -8,7 +9,7 @@ class Tournament(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     type = db.Column(db.Enum('league', 'playoff',
                      name='tournament_type_enum'), nullable=False)
-    status = db.Column(db.Enum('active', 'ended', 'canceled',
+    status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
                        name='tournament_status_enum'), nullable=False)
 
     teams = db.relationship('Team', back_populates='tournament')
@@ -29,35 +30,44 @@ class Tournament(db.Model):
     def find_tournament(cls, name):
         return cls.query.filter_by(name=name).first()
 
-    # Funkcja dodająca druzyne do turnieju(jezeli turniej jest active to nie mozna dodawac)
-    # Dodawanie druzyny przez nazwę(NIE PRZEZ ID, zeby nie trzeba pisac konwersji z frontendu)
+    # Szukanie turnieju po ID
     @classmethod
-    def add_team(cls, name, team_name):
+    def find_tournament_by_id(cls, id):
+        t = cls.query.get(id)
+        if not t:
+            raise ValueError("Nie istnieje turniej o takim ID.")
+        return t
+
+
+    @classmethod
+    def add_teams(cls, name, teams):
         # Wyszukujemy turniej po ID
         tournament = cls.query.filter_by(name=name).first()
         if not tournament:
             raise ValueError(f"Turniej o nazwie {name} nie istnieje.")
 
-        # Sprawdzamy, czy turniej jest w stanie "active"
-        if tournament.status == 'active':
-            raise ValueError("Nie można dodać drużyny do aktywnego turnieju.")
+        # Sprawdzamy, czy turniej jest w stanie 'planned'
+        if tournament.status != 'planned':
+            raise ValueError("Nie mozna dodac druzyn po rozpoczęciu turnieju")
 
-        # Wyszukujemy drużynę po nazwie
-        team = Team.query.filter_by(name=team_name).first()
-        if not team:
-            raise ValueError(f"Drużyna o nazwie {team_name} nie istnieje.")
+        if not teams:
+            raise ValueError(f"Brak druzyn")
+        
+        for team in teams:
+            if team in tournament.teams:
+                raise ValueError(
+                f"Drużyna {team.name} już znajduje się w turnieju {name}.")
+            tournament.teams.append(team)
+            team.tournament_id = tournament.id
 
-        # Dodajemy drużynę do turnieju
-        if team in tournament.teams:
-            raise ValueError(
-                f"Drużyna {team_name} już znajduje się w turnieju {name}.")
-
-        tournament.teams.append(team)
         db.session.commit()
 
     @classmethod
-    def get_teams(cls):
-        return cls.query.first().teams
+    def get_teams(cls,id):
+        tournament = cls.query.get(id)  # Pobierz turniej po ID
+        if not tournament:
+            raise ValueError(f"Nie znaleziono turnieju o ID {id}.")
+        return tournament.teams
 
     # obsluga bledow
     @classmethod
@@ -116,7 +126,27 @@ class Tournament(db.Model):
 
         tournament.status = 'canceled'
         db.session.commit()
-    
+    @classmethod
+    def generate_matches(cls, tournament):
+        matches = []
+        teams = Tournament.get_teams(tournament.id)
+        for home_team, away_team in permutations(teams, 2):
+            # Mecz 1: Gospodarzem jest home_team
+            match1 = Match(
+            homeTeam_id=home_team.id,
+            awayTeam_id=away_team.id,
+            tournament_id=tournament.id,
+            status='planned',
+            scoreHome=None,
+            scoreAway=None
+            )
+            matches.append(match1)
+
+        db.session.add_all(matches)
+        db.session.commit()
+
+
+
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -139,11 +169,23 @@ class Team(db.Model):
             query = query.limit(n)
         return query.all()
         
+    @classmethod
+    def get_teams_without_tournament(cls):
+        # Zwracamy wszystkich graczy, którzy nie mają przypisanego team_id
+        return cls.query.filter(cls.tournament_id == None).all()
     
     @classmethod
     def find_team(cls, name):
         """Znajduje drużynę na podstawie nazwy."""
         return cls.query.filter_by(name=name).first()
+    
+    # Znajduje druzyne po ID
+    @classmethod
+    def find_team_by_id(cls, id):
+        t = cls.query.get(id)
+        if not t:
+            raise ValueError("Nie istnieje druzyna o takim ID.")
+        return t
     
     def get_players(cls, name):
         team = cls.query.get(name)
@@ -214,10 +256,9 @@ class Team(db.Model):
             }
         }    
         
-
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    firstName = db.Column(db.String(51), nullable=False)
+    firstName = db.Column(db.String(50), nullable=False)
     lastName = db.Column(db.String(50), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     position = db.Column(db.Enum('substitute', 'field',
@@ -237,6 +278,11 @@ class Player(db.Model):
         if n:
             query = query.limit(n)
         return query.all()
+    
+    @classmethod
+    def get_players_without_team(cls):
+        # Zwracamy wszystkich graczy, którzy nie mają przypisanego team_id
+        return cls.query.filter(cls.team_id == None).all()
 
     # Wyszukiwanie zawodnika w bazie, szukanie po imieniu i nazwisku (UWAGA! Mogą istniec dwaj zawodnicy
     # co się tak samo nazwyają i maja tyle samo lat - jakoś to rozwiązac np. wyswietlic obydwoch i poinformowac o tym usera)
@@ -255,7 +301,14 @@ class Player(db.Model):
                 f"Nie znaleziono zawodnika o imieniu {first_name} i nazwisku {last_name}.")
 
         return players
-
+    
+    # Znajduje zawodnika po ID
+    @classmethod
+    def find_player_by_id(cls, id):
+        p = cls.query.get(id)
+        if not p:
+            raise ValueError("Nie istnieje zawodnik o takim ID.")
+        return p
     # Bezpieczne usuwanie zawodnika
     @classmethod
     def delete_player(cls, first_name, last_name):

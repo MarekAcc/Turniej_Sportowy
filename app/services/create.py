@@ -28,42 +28,38 @@ def create_tournament(name, type, status):
     else:
         raise ValueError('Błąd formatu!')
     
+
     if status == 'Aktywny':
         status = 'active'
     elif status == 'Zakończony':
         status = 'ended'
     elif status == 'Anulowany':
         status = 'canceled'
+    elif status == 'planned':
+        status = 'planned'
     else:
         raise ValueError('Błąd statusu!')
     
     new_tournament = Tournament(name=name, type=type, status=status)
     db.session.add(new_tournament)
     db.session.commit()
+    return new_tournament
 
-def create_team(name, tournament_name, players):
-    if len(name) > 100:
-        raise ValueError('Nazwa druzyny jest za długa!')
+def create_team(name, players):
+    if len(name) > 100 or len(name) < 4:
+        raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
 
     if Team.query.filter_by(name=name).first():
         raise ValueError(f"Druzyna o nazwie '{name}' już istnieje!")
     
-    tournament = Tournament.query.filter_by(name=tournament_name).first()
-    if not tournament:
-        raise ValueError(f"Turniej o nazwie '{tournament_name}' NIE ISTNIEJE!")
-    
-    new_team = Team(name=name, tournament_id=tournament.id)
+    new_team = Team(name=name)
     db.session.add(new_team)
     db.session.commit()
 
     for p in players:
-        first_name, last_name = p.split(" ",1)
-        player = Player.query.filter_by(firstName=first_name, lastName=last_name).first()
-        if not player:
-            raise ValueError(f"Zawodnik '{first_name} {last_name}' NIE ISTNIEJE!")
-        if player.team_id != None:
-            raise ValueError(f"Zawodnik '{first_name} {last_name}' jest juz przypisany do innej druzyny!")
-        player.team_id = new_team.id
+        if p.team_id != None:
+            raise ValueError(f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
+        p.team_id = new_team.id
         
     db.session.commit()
 
