@@ -10,15 +10,33 @@ Create team
     <div class="form-group">
         <label for="name">Nazwa drużyny</label>
         <input type="text" class="form-control" id="name" name="name" placeholder="Podaj nazwę drużyny">
+<<<<<<< HEAD
         <label for="tournament_id">Nazwa turnieju, w którym druzyna będzie grać</label>
         <input type="text" class="form-control" id="tournament_id" name="tournament" placeholder="Podaj nazwę turnieju">
+=======
+>>>>>>> Marek
     </div>
+    <!-- Lista wyboru zawodników -->
+    {% for i in range(1, 3) %}
     <div class="form-group">
+<<<<<<< HEAD
         {% for i in range(1, 3) %}
         <label for="zawodnik{{i}}">Zawodnik {{i}}</label>
         <input type="text" class="form-control" id="zawodnik{{i}}" name="player{{i}}" placeholder="Imię i nazwisko">
         {% endfor %}
+=======
+        <label for="player_id_{{ i }}">Wybierz zawodnika {{ i }}:</label>
+        <select class="form-control" name="player_id_{{ i }}" id="player_id_{{ i }}" required>
+            <option value="" disabled selected>Wybierz zawodnika</option>
+            {% for player in players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{ player.lastName }} 
+            </option>
+            {% endfor %}
+        </select>
+>>>>>>> Marek
     </div>
+    {% endfor %}
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
