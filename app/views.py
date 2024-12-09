@@ -290,28 +290,34 @@ def draw_next_round(tournament_id):
 
 
 # Dodawanie zawodnika do bazy
-@views.route('/new-player', methods=['GET', 'POST'])
-@login_required
+@views.route('/new-player', methods=['GET', 'POST']) 
+@login_required  # Wymagane zalogowanie użytkownika
 def player_adder():
+    # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
-        firstName = request.form.get('firstName')
-        lastName = request.form.get('lastName')
-        age = request.form.get('age')
+        # Pobranie danych z formularza
+        firstName = request.form.get('firstName')  # Imię zawodnika
+        lastName = request.form.get('lastName')    # Nazwisko zawodnika
+        age = request.form.get('age')             # Wiek zawodnika
 
-        if not firstName or not lastName or not age:
+        # Walidacja wprowadzonych danych
+        if not firstName or not lastName or not age:  # Sprawdzenie, czy wszystkie pola zostały uzupełnione
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('new_player.html', user=current_user)
-        try:
-            create_player(firstName, lastName, age)
-            flash('Zawodnik został pomyślnie dodany!', 'success')
-            return redirect(url_for('views.home_admin',user=current_user))
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return render_template('new_player.html', user=current_user)
 
-    return render_template("new_player.html", user
-                           =current_user)
-    
+        try:
+            # Próba utworzenia zawodnika w bazie danych
+            create_player(firstName, lastName, age)  # Funkcja dodająca zawodnika
+            flash('Zawodnik został pomyślnie dodany!', 'success')
+            return redirect(url_for('views.home_admin', user=current_user))  # Przekierowanie na stronę główną admina
+        except ValueError as e:
+            # Obsługa błędu podczas tworzenia zawodnika
+            flash(str(e), 'danger')
+            return render_template('new_player.html', user=current_user)  # Ponowne załadowanie formularza
+
+    # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
+    return render_template("new_player.html", user=current_user)
+
 @views.route('/delete-player', methods=['GET', 'POST'])
 @login_required
 def delete_player():

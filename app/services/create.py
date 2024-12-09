@@ -4,10 +4,11 @@ from app.models import Player, Tournament, Team, Coach, Match, MatchEvent
 from app import db
 
 
+# Funkcja dodawania zawodnika do bazy
 def create_player(firstName, lastName, age):
-    if len(firstName) > 50:
+    if len(firstName) > 50 or len(firstName) < 1:
         raise ValueError('Imię jest za długie!')
-    if len(lastName) > 50:
+    if len(lastName) > 50 or len(lastName) < 1:
         raise ValueError('Nazwisko jest za długie!')
     if int(age) < 12 or int(age) > 99:
         raise ValueError('Nieprawidłowy wiek!')
@@ -16,8 +17,6 @@ def create_player(firstName, lastName, age):
                         age=int(age), status='active')
     db.session.add(new_player)
     db.session.commit()
-
-    # tutaj pozmieniać to co będzie sprawdzanie przy frontendzie a co przy backendzie
 
 
 def create_tournament(name, type, status):
