@@ -152,7 +152,7 @@ def match_details(match_id):
     # Pobieramy wydarzenia związane z meczem
     match_events = MatchEvent.query.filter_by(match_id=match_id).all()
 
-    return render_template("match_details.html", match=match, match_events=match_events)
+    return render_template("match_details.html", match=match, match_events=match_events, user=current_user)
 
 
 # FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
