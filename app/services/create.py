@@ -1,6 +1,6 @@
 # Tutaj dodać wszystkie funkcje do tworzenia instancji Modeli
 # Operacje na modelach dodać jako metody
-from app.models import Player, Tournament, Team, Coach, Match, MatchEvent
+from app.models import Player, Tournament, Team, Coach, Match, MatchEvent, Referee
 from app import db
 
 
@@ -191,3 +191,16 @@ def create_match_event(eventType, match_id, player_id):
     db.session.commit()
 
     return new_match_event
+
+def create_referee(firstName, lastName, age):
+    if len(firstName) > 50 or len(firstName) < 1:
+        raise ValueError('Imię jest za długie!')
+    if len(lastName) > 50 or len(lastName) < 1:
+        raise ValueError('Nazwisko jest za długie!')
+    if int(age) < 12 or int(age) > 99:
+        raise ValueError('Nieprawidłowy wiek!')
+
+    new_referee = Referee(firstName=firstName, lastName=lastName,
+                        age=int(age))
+    db.session.add(new_referee)
+    db.session.commit()
