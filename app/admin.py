@@ -281,12 +281,7 @@ def choose_match_to_manage():
         if not match_id or not action_type:
             flash('Pola nie mogą być puste!', 'warning')
             return render_template('choose_match_to_manage.html',matches=all_matches)
-        
-        match = Match.find_match_by_id(match_id)
-        # if match.status != 'planned':
-        #     flash('Nie mozna edytować zakonczonego meczu!', 'warning')
-        #     return render_template('choose_match_to_manage.html',matches=all_matches)
-        
+
         if action_type == 'Dodanie wyniku meczu':
             return redirect(url_for('admin.manage_match', match_id=match_id))
         elif action_type == 'Przypisanie sędziego do meczu':
@@ -301,17 +296,17 @@ def add_referee_to_match():
     if request.method == 'POST':
         match_id = request.args.get('match_id', type=int)
         referee_id = request.form.get('referee_id')
-        match = Match.find_match_by_id(match_id)
+        try:
+            match = Match.find_match_by_id(match_id)
+            referee = Referee.find_referee_by_id(referee_id)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('admin.home_admin'))
 
         if match.status != 'planned':
             flash('Nie mozna przypsać sędziego do meczu ktory juz się odbyl!', 'warning')
             return redirect(url_for('admin.home_admin'))
         
-        if not referee_id:
-            pass
-
-        referee = Referee.find_referee_by_id(referee_id)
-
         match.referee_id = referee_id
         referee.matches.append(match)
 
@@ -323,8 +318,16 @@ def add_referee_to_match():
 @login_required
 def manage_match():
     match_id = request.args.get('match_id', type=int)
-    match = Match.find_match_by_id(match_id)
+    match = Match.find_match_by_id(match_id)  
 
+    if match.status != 'planned':
+        flash('Nie mozna edytować zakonczonego meczu!', 'warning')
+        return redirect(url_for('admin.home_admin'))
+    
+    if not match.referee:
+        flash('Nie mozna dodać wyniku, gdy nie ma sędziego meczu!', 'warning')
+        return redirect(url_for('admin.home_admin'))
+        
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
     homeTeam = Team.find_team_by_id(match.homeTeam_id)
     awayTeam= Team.find_team_by_id(match.awayTeam_id)
