@@ -167,8 +167,13 @@ def create_match_event(eventType, match_id, player_id):
         ])
 
         # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
-        if (current_home_goals >= match.scoreHome) or (current_away_goals >= match.scoreAway):
+        print(current_home_goals, current_away_goals)
+        print(match.scoreHome,match.scoreAway)
+        if (current_home_goals == match.scoreHome and current_away_goals == match.scoreAway):
             raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
+
+
+             
 
     new_match_event = MatchEvent(
         eventType=eventType,

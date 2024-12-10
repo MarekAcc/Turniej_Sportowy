@@ -403,7 +403,7 @@ def referee_adder():
         try:
             # Próba utworzenia zawodnika w bazie danych
             create_referee(firstName, lastName, age)  # Funkcja dodająca zawodnika
-            flash('Trener został pomyślnie dodany!', 'success')
+            flash('Sędzia został pomyślnie dodany!', 'success')
             return render_template('new_referee.html', user=current_user) # Przekierowanie na stronę główną admina
         except ValueError as e:
             # Obsługa błędu podczas tworzenia zawodnika

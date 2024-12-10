@@ -7,6 +7,8 @@ Szczegóły Zawodnika
 {% block content %}
 <h1>{{ player.firstName }} {{ player.lastName }}</h1>
 <p><strong>Wiek:</strong> {{ player.age }}</p>
+<p><strong>Gole:</strong> {{ player.goals }}</p>
+<p><strong>Wystąpienia:</strong> {{ player.appearances }}</p>
 <p><strong>Drużyna:</strong>
     {% if team %}
     <a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a>
