@@ -13,6 +13,7 @@ class Tournament(db.Model):
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
                        name='tournament_status_enum'), nullable=False)
 
+    round = db.Column(db.Integer)
     teams = db.relationship('Team', back_populates='tournament')
     matches = db.relationship(
         'Match', back_populates='tournament', cascade="all, delete-orphan")
@@ -175,10 +176,11 @@ class Tournament(db.Model):
         db.session.commit()
 
     @classmethod
-    def generate_next_round(cls, tournament, round):
+    def generate_next_round(cls, tournament):
+        round = tournament.round
         previous_matches = Match.query.filter_by(
             tournament_id=tournament.id,
-            round=round-1,
+            round=round,
             status='ended'
         ).all()
         winners = [match.home_team if match.scoreHome >
@@ -192,10 +194,11 @@ class Tournament(db.Model):
                 status='planned',
                 scoreHome=None,
                 scoreAway=None,
-                round=round + 1
+                round=round+1
             )
             new_matches.append(match)
 
+        tournament.round = round + 1
         db.session.add_all(new_matches)
         db.session.commit()
 
@@ -203,7 +206,7 @@ class Tournament(db.Model):
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-
+    score = db.Column(db.Integer, default=0)
     tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'))
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
@@ -278,7 +281,7 @@ class Team(db.Model):
         if team.tournament_id:
             raise ValueError(
                 "Nie można usunąć drużyny uczestniczącej w turnieju.")
-        
+
         if team.home_matches or team.away_matches:
             raise ValueError(
                 "Nie można usunąć drużyny która grała/będzie grała mecze!")
@@ -386,7 +389,7 @@ class Player(db.Model):
         if player.team:
             raise ValueError(
                 f"Zawodnik należy do drużyny {player.team.name}. Najpierw usuń go z drużyny.")
-        
+
         if player.playerEvents:
             raise ValueError(
                 f"Zawodnik {player.firstName} {player.lastName} uczestniczył w MatchEventach! Nie mozesz go usunąć!")
@@ -500,12 +503,16 @@ class Match(db.Model):
     @classmethod
     def finish_match(cls, home_team_name, away_team_name, tournament_name, score_home, score_away):
         match = cls.find_match(home_team_name, away_team_name, tournament_name)
+
         if match.status == 'ended':
             raise ValueError("Mecz już został zakończony.")
 
-        match.scoreHome = score_home
-        match.scoreAway = score_away
+        # Ustawianie wyników meczu
+        score_home = match.scoreHome
+        score_away = match.scoreAway
         match.status = 'ended'
+
+        # Zapis zmian w bazie danych
         db.session.commit()
 
     @classmethod

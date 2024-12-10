@@ -28,12 +28,14 @@ def create_tournament(name, type, status):
 
     if type == 'Liga':
         type = 'league'
+        round = None
     elif type == 'Turniej pucharowy':
         type = 'playoff'
+        round = 1
     else:
         raise ValueError('Błąd formatu!')
 
-    new_tournament = Tournament(name=name, type=type, status=status)
+    new_tournament = Tournament(name=name, type=type, status=status, round=round)
     db.session.add(new_tournament)
     db.session.commit()
     return new_tournament

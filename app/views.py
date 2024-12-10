@@ -124,6 +124,8 @@ def coaches():
 def referees():
     return render_template("referees.html", referees=referees, user=current_user)
 
+# detale dla stron --------------------------------------------------------------------------------------------------------
+
 
 @views.route('/tournament/<int:tournament_id>')
 def tournament_details(tournament_id):
@@ -517,7 +519,29 @@ def manage_match():
         match.scoreAway = scoreAway
         match.status = 'ended'
 
-        # db.session.commit()
+        # Aktualizacja punktów dla drużyn w turnieju ligowym
+        print(type(scoreHome))
+        if match.tournament.type == 'league':
+            home_team = match.home_team
+            away_team = match.away_team
+            print('wynik')
+            if not home_team or not away_team:
+                raise ValueError(
+                    "Nie można znaleźć drużyn przypisanych do meczu.")
+
+            if scoreHome > scoreAway:
+                home_team.score += 3  # Gospodarz wygrywa
+                print('dupa')
+            elif scoreHome < scoreAway:
+                away_team.score += 3  # Goście wygrywają
+                print('dupa2')
+
+            else:
+                home_team.score += 1  # Remis
+                away_team.score += 1  # Remis
+                print('dupa3')
+        print('2')
+        db.session.commit()
         flash('Dodano wynik meczu!', 'success')
         return redirect(url_for('views.home_admin'))
 
