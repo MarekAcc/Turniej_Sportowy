@@ -280,6 +280,19 @@ def manage_match():
         match.scoreAway = scoreAway
         match.status = 'ended'
 
+        players_home = homeTeam.players
+        players_away = awayTeam.players
+        for player in players_home:
+            if player.position =="field":
+                player.appearances+=1
+            if player.status == "suspended":
+                player.status == "active"
+        for player in players_away:
+            if player.position == "field":
+                player.appearances+=1 
+            if player.status == "suspended":
+                player.status == "active"
+
         db.session.commit()
         flash('Dodano wynik meczu!', 'success')
         return redirect(url_for('admin.home_admin'))

@@ -112,6 +112,19 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
         status=status,
         tournament_id=tournament_id
     )
+    '''Dodać do aktualizuj status meczu'''
+    players_home = home_team.players
+    players_away = away_team.players
+    for player in players_home:
+        if player.position =="field":
+            player.appearances+=1
+        if player.status == "suspended":
+            player.status == "active"
+    for player in players_away:
+        if player.position == "field":
+            player.appearances+=1 
+        if player.status == "suspended":
+            player.status == "active"
 
     # Zapis do bazy danych
     db.session.add(new_match)
