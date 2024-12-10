@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import Tournament,Team,Match, Coach, Player
+from .models import Tournament,Team,Match, Coach, Player, MatchEvent
 from . import db
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
@@ -10,7 +10,6 @@ admin = Blueprint('admin', __name__)
 @admin.route('/home-admin')
 @login_required
 def home_admin():
-
     return render_template("home_admin.html", user=current_user)
 
 # Dodawanie zawodnika do bazy
@@ -200,7 +199,11 @@ def choose_tournament_to_manage():
     all_tournaments = Tournament.query.all()
     if request.method == 'POST':
         tournament_id = request.form.get('tournament_id')
-        return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
+        if not tournament_id:
+            flash(f'Wybierz druzyne!', 'warning')
+            return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
+        else:
+            return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
 
     return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
 
@@ -259,15 +262,24 @@ def delete_tournament(tournament_id):
 def draw_next_round(tournament_id):
     # Obsługa losowania kolejnej rundy
     tournament = Tournament.find_tournament_by_id(tournament_id)
-    Tournament.generate_next_round(tournament)
-    pass
-
+    try:
+        Tournament.generate_next_round(tournament)
+        return redirect(url_for('admin.home_admin'))
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('admin.home_admin'))
+    
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
 def choose_match_to_manage():
     all_matches = Match.query.all()
     if request.method == 'POST':
         match_id = request.form.get('match_id')
+        match = Match.find_match_by_id(match_id)
+        if match.status != 'planned':
+            flash('Nie mozna edytować zakonczonego meczu!', 'warning')
+            return render_template('choose_match_to_manage.html',matches=all_matches)
+        
         return redirect(url_for('admin.manage_match', match_id=match_id))
 
     return render_template('choose_match_to_manage.html',matches=all_matches)

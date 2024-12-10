@@ -138,6 +138,38 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
 
 def create_match_event(eventType, match_id, player_id):
 
+    match = Match.query.get(match_id)
+    if not match:
+        raise ValueError(f"Mecz o ID {match_id} nie istnieje.")
+    
+    # Pobranie turnieju
+    tournament = match.tournament
+    if not tournament:
+        raise ValueError(f"Turniej dla meczu o ID {match_id} nie istnieje.")
+
+    # Zabezpieczenie przed dodawaniem wydarzeń, jeśli wygenerowano kolejną rundę
+    if tournament.round > match.round:
+        raise ValueError(
+            "Nie można dodawać wydarzeń do meczu, ponieważ następna runda turnieju została już wygenerowana."
+        )
+    
+    
+    # Sprawdzenie, czy można dodać kolejny gol
+    if eventType == "goal":
+        # Zliczanie istniejących wydarzeń typu "goal" w meczu
+        current_home_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.home_team.players]
+        ])
+        current_away_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.away_team.players]
+        ])
+
+        # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
+        if (current_home_goals >= match.scoreHome) or (current_away_goals >= match.scoreAway):
+            raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
+
     new_match_event = MatchEvent(
         eventType=eventType,
         match_id=match_id,
@@ -145,6 +177,9 @@ def create_match_event(eventType, match_id, player_id):
     )
 
     player = Player.query.get(player_id)
+    if not player:
+        raise ValueError(f"Zawodnik o ID {player_id} nie istnieje.")
+    
     if eventType == "goal":
         player.goals+=1
     elif eventType == "redCard":
