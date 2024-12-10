@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .models import Tournament, Team, Match, Coach, Player, MatchEvent
 from . import db
+from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
@@ -135,13 +136,18 @@ def tournament_details(tournament_id):
         flash("Turniej nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
 
+    # Pobieramy drużyny w turnieju oraz ranknig
+    if tournament.type == 'league':
+        ranking = calculate_ranking(tournament_id)
     # Pobieramy drużyny w turnieju
-    teams = tournament.teams
+    else:
+    #   teams = tournament.teams
+        ranking = None
 
     # Pobieramy mecze rozegrane i zaplanowane w turnieju
     matches = Match.query.filter((Match.tournament_id == tournament_id)).all()
 
-    return render_template("tournament_details.html", tournament=tournament, teams=teams, matches=matches, user=current_user)
+    return render_template("tournament_details.html", tournament=tournament, ranking=ranking, matches=matches, user=current_user)
 
 
 @views.route('/team/<int:team_id>')

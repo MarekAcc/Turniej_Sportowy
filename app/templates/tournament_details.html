@@ -56,10 +56,10 @@
         </tr>
     </thead>
     <tbody>
-        {% for team in teams %}
+        {% for team, points in ranking.items(): %}
         <tr>
             <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
-            <td></td>
+            <td> {{ points }}</td>
         </tr>
         {% else %}
         <tr>
@@ -75,15 +75,23 @@
 
 {% endif %}
 <!-- Mecze -->
-<h2>Mecze</h2>
-<ul>
+<h2 class="mt-4">Mecze</h2>
+<div class="list-group">
     {% for match in matches %}
-    <li><a href="{{ url_for('views.match_details', match_id=match.id) }}">{{ match.home_team.name }} vs {{
-            match.away_team.name }}</a> - {{ match.date }}</li>
+    <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
+        </div>
+        <p class="mb-1 text-center">
+            <strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong>
+        </p>
+    </a>
     {% else %}
-    <li>Brak meczy</li>
+    <div class="list-group-item">
+        <p class="mb-0 text-muted text-center">Brak meczy</p>
+    </div>
     {% endfor %}
-</ul>
+</div>
 
 <a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
 {% endblock %}

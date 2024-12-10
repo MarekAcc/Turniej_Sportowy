@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .models import Tournament,Team,Match, Coach, Player, MatchEvent
 from . import db
+from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
@@ -304,7 +305,7 @@ def manage_match():
 
         players_home = homeTeam.players
         players_away = awayTeam.players
-        
+
         for player in players_home:
             if player.position =="field":
                 player.appearances+=1
@@ -318,7 +319,7 @@ def manage_match():
 
         db.session.commit()
         flash('Dodano wynik meczu!', 'success')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.match_event_adder'))
 
     return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
