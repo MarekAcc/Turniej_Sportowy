@@ -11,6 +11,17 @@ Create team
         <label for="name">Nazwa drużyny</label>
         <input type="text" class="form-control" id="name" name="name" placeholder="Podaj nazwę drużyny">
     </div>
+    <div class="form-group">
+        <label for="name">Dodaj trenera</label>
+        <select class="form-control" name="coach_id" id="coach_id" required>
+            <option value="" disabled selected>Wybierz trenera</option>
+            {% for coach in coaches %}
+            <option value="{{ coach.id }}">
+                {{ coach.firstName }} {{ coach.lastName }} ({{ coach.team.name }})
+            </option>
+            {% endfor %}
+        </select>
+     </div>
     <!-- Lista wyboru zawodników -->
     {% for i in range(1, 3) %}
     <div class="form-group">

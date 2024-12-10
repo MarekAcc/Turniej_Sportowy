@@ -67,38 +67,47 @@ def delete_player():
 def team_adder():
     # Pobranie listy zawodników bez przypisanej drużyny
     players = Player.get_players_without_team()
+    coaches = Coach.query.filter(Coach.firstName != 'ADMIN').all()
 
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
         name = request.form.get('name')  # Pobranie nazwy drużyny z formularza
         team_players = []  # Lista zawodników w drużynie
 
+        # Pobranie trenera druzyny z formularza
+        coach_id = request.form.get('coach_id')
+        try:
+            coach = Coach.find_coach_by_id(coach_id)
+        except ValueError as e:
+            flash(str(e), 'danger') 
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
+
         # Pobranie danych zawodników z formularza
         for i in range(1, 3):
             player_id = request.form.get(f'player_id_{i}')
             if not player_id:
                 flash('Wszyscy zawodnicy są wymagani!', 'danger')
-                return render_template("register_team.html", user=current_user, players=players)
+                return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
             player = Player.find_player_by_id(player_id)
             team_players.append(player)
 
         # Sprawdzenie, czy nazwa drużyny została podana
         if not name:
             flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template("register_team.html", user=current_user, players=players)
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
         try:
             # Próba utworzenia drużyny
-            create_team(name, team_players)
+            create_team(name, team_players,coach)
             flash('Drużyna została pomyślnie zarejestrowana!', 'success')
             return redirect(url_for('admin.home_admin', user=current_user))
         except ValueError as e:
             # Obsługa błędów podczas tworzenia drużyny
             flash(str(e), 'danger') 
-            return render_template("register_team.html", user=current_user, players=players)
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
     # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
-    return render_template("register_team.html", user=current_user, players=players)
+    return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
 @admin.route('/delete-team', methods=['GET', 'POST'])
 @login_required

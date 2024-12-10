@@ -41,7 +41,7 @@ def create_tournament(name, type, status):
     return new_tournament
 
 
-def create_team(name, players):
+def create_team(name, players, coach):
     if len(name) > 100 or len(name) < 4:
         raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
 
@@ -57,6 +57,8 @@ def create_team(name, players):
             raise ValueError(
                 f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
         p.team_id = new_team.id
+
+    coach.team_id = new_team.id
 
     db.session.commit()
 

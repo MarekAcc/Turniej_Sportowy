@@ -648,6 +648,14 @@ class Coach(db.Model,UserMixin):
             (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
         ).all()
 
+    # Znajduje trenera po ID
+    @classmethod
+    def find_coach_by_id(cls, id):
+        p = cls.query.get(id)
+        if not p:
+            raise ValueError("Nie istnieje trener o takim ID.")
+        return p
+
     # Bezpieczne usuwanie trenera
     @classmethod
     def delete_coach(cls, coach_id):
