@@ -304,6 +304,7 @@ def manage_match():
 
         players_home = homeTeam.players
         players_away = awayTeam.players
+        
         for player in players_home:
             if player.position =="field":
                 player.appearances+=1

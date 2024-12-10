@@ -109,6 +109,18 @@ class Tournament(db.Model):
 
         if tournament.status == 'ended':
             raise ValueError("Turniej już został zakończony.")
+        
+        # Sprawdzenie, czy istnieją mecze o statusie 'planned'
+        planned_matches = Match.query.filter_by(tournament_id=tournament.id, status='planned').count()
+        if planned_matches > 0:
+            raise ValueError("Nie można zakończyć turnieju, ponieważ istnieją niezakończone mecze.")
+    
+        # Dodatkowe zabezpieczenie dla turnieju typu 'playoff'
+        if tournament.type == 'playoff':
+            last_round = tournament.round
+            ended_matches = Match.query.filter_by(tournament_id=tournament.id, round=last_round, status='ended').count()
+            if ended_matches != 1:
+                raise ValueError("Nie można zakończyć turnieju typu 'playoff', ponieważ ostatnia runda nie została poprawnie zakończona (dokładnie jeden mecz musi być zakończony).")
 
         tournament.status = 'ended'
         db.session.commit()
@@ -348,7 +360,6 @@ class Team(db.Model):
                 "away": [match.id for match in team.away_matches],
             }
         }
-
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
