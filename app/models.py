@@ -463,6 +463,11 @@ class Match(db.Model):
     tournament_id = db.Column(db.Integer, db.ForeignKey(
         'tournament.id'), nullable=False)
 
+    referee_id = db.Column(db.Integer, db.ForeignKey(
+        'referee.id'))
+    
+    referee = db.relationship("Referee", foreign_keys=[referee_id], back_populates="matches")
+
     home_team = db.relationship(
         "Team", foreign_keys=[homeTeam_id], back_populates="home_matches")
     away_team = db.relationship(
@@ -550,17 +555,30 @@ class Match(db.Model):
         db.session.commit()
 
     @classmethod
-    def finish_match(cls, home_team_name, away_team_name, tournament_name, score_home, score_away):
-        match = cls.find_match(home_team_name, away_team_name, tournament_name)
+    def finish_match(cls, match, scoreHome, scoreAway):
+        homeTeam = match.home_team
+        awayTeam = match.away_team
+
+        match.scoreHome = scoreHome
+        match.scoreAway = scoreAway
+        match.status = 'ended'
 
         if match.status == 'ended':
             raise ValueError("Mecz już został zakończony.")
+        
+        players_home = homeTeam.players
+        players_away = awayTeam.players
 
-        # Ustawianie wyników meczu
-        score_home = match.scoreHome
-        score_away = match.scoreAway
-        match.status = 'ended'
-
+        for player in players_home:
+            if player.position =="field":
+                player.appearances+=1
+            if player.status == "suspended":
+                player.status == "active"
+        for player in players_away:
+            if player.position == "field":
+                player.appearances+=1 
+            if player.status == "suspended":
+                player.status == "active"
         # Zapis zmian w bazie danych
         db.session.commit()
 
@@ -723,3 +741,32 @@ class Coach(db.Model, UserMixin):
             coach.team_id = None
         db.session.delete(coach_id)
         db.session.commit()
+
+
+class Referee(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    firstName = db.Column(db.String(50), nullable=False)
+    lastName = db.Column(db.String(50), nullable=False)
+    age = db.Column(db.Integer)
+    matches = db.relationship('Match', back_populates='referee')
+
+    @classmethod
+    def find_ref(cls, query):
+         return cls.query.filter(
+            (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
+        ).all()
+    
+    @classmethod
+    def find_referee_by_id(cls, id):
+        p = cls.query.get(id)
+        if not p:
+            raise ValueError("Nie istnieje sędzia o takim ID.")
+        return p
+
+    
+    @classmethod
+    def get_refs(cls, n = None, sort_by = "lastName"):
+        query = cls.query.order_by(getattr(cls, sort_by).asc())
+        if n:
+            query = query.limit(n)
+        return query.all()

@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import Tournament,Team,Match, Coach, Player, MatchEvent
+from .models import Tournament,Team,Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
-from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
+from .services.create import create_player, create_tournament, create_team, create_match, create_match_event, create_referee
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
 
@@ -276,15 +276,49 @@ def choose_match_to_manage():
     all_matches = Match.query.all()
     if request.method == 'POST':
         match_id = request.form.get('match_id')
-        match = Match.find_match_by_id(match_id)
-        if match.status != 'planned':
-            flash('Nie mozna edytować zakonczonego meczu!', 'warning')
+        action_type = request.form.get('action_type')
+
+        if not match_id or not action_type:
+            flash('Pola nie mogą być puste!', 'warning')
             return render_template('choose_match_to_manage.html',matches=all_matches)
         
-        return redirect(url_for('admin.manage_match', match_id=match_id))
+        match = Match.find_match_by_id(match_id)
+        # if match.status != 'planned':
+        #     flash('Nie mozna edytować zakonczonego meczu!', 'warning')
+        #     return render_template('choose_match_to_manage.html',matches=all_matches)
+        
+        if action_type == 'Dodanie wyniku meczu':
+            return redirect(url_for('admin.manage_match', match_id=match_id))
+        elif action_type == 'Przypisanie sędziego do meczu':
+            return redirect(url_for('admin.add_referee_to_match', match_id=match_id))
 
     return render_template('choose_match_to_manage.html',matches=all_matches)
 
+@admin.route('/add-referee-to-match', methods=['GET', 'POST'])
+@login_required
+def add_referee_to_match():
+    all_referees = Referee.query.all()
+    if request.method == 'POST':
+        match_id = request.args.get('match_id', type=int)
+        referee_id = request.form.get('referee_id')
+        match = Match.find_match_by_id(match_id)
+
+        if match.status != 'planned':
+            flash('Nie mozna przypsać sędziego do meczu ktory juz się odbyl!', 'warning')
+            return redirect(url_for('admin.home_admin'))
+        
+        if not referee_id:
+            pass
+
+        referee = Referee.find_referee_by_id(referee_id)
+
+        match.referee_id = referee_id
+        referee.matches.append(match)
+
+        db.session.commit()
+
+    return render_template('add_referee_to_match.html',referees=all_referees)
+        
 @admin.route('/manage-match', methods=['GET', 'POST'])
 @login_required
 def manage_match():
@@ -299,27 +333,14 @@ def manage_match():
         scoreHome = request.form.get('scoreHome')
         scoreAway = request.form.get('scoreAway')
 
-        match.scoreHome = scoreHome
-        match.scoreAway = scoreAway
-        match.status = 'ended'
+        try:
+            Match.finish_match(match, scoreHome,scoreAway)
+            flash('Dodano wynik meczu!', 'success')
+            return redirect(url_for('admin.match_event_adder'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('admin.home_admin'))
 
-        players_home = homeTeam.players
-        players_away = awayTeam.players
-
-        for player in players_home:
-            if player.position =="field":
-                player.appearances+=1
-            if player.status == "suspended":
-                player.status == "active"
-        for player in players_away:
-            if player.position == "field":
-                player.appearances+=1 
-            if player.status == "suspended":
-                player.status == "active"
-
-        db.session.commit()
-        flash('Dodano wynik meczu!', 'success')
-        return redirect(url_for('admin.match_event_adder'))
 
     return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
@@ -354,3 +375,32 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+# Dodawanie zawodnika do bazy
+@admin.route('/new-referee', methods=['GET', 'POST']) 
+@login_required  # Wymagane zalogowanie użytkownika
+def referee_adder():
+    # Sprawdzenie, czy metoda żądania to 'POST'
+    if request.method == 'POST':
+        # Pobranie danych z formularza
+        firstName = request.form.get('firstName')  # Imię zawodnika
+        lastName = request.form.get('lastName')    # Nazwisko zawodnika
+        age = request.form.get('age')             # Wiek zawodnika
+
+        # Walidacja wprowadzonych danych
+        if not firstName or not lastName or not age:  # Sprawdzenie, czy wszystkie pola zostały uzupełnione
+            flash('Wszystkie pola są wymagane!', 'danger')
+            return render_template('new_referee.html', user=current_user)
+
+        try:
+            # Próba utworzenia zawodnika w bazie danych
+            create_referee(firstName, lastName, age)  # Funkcja dodająca zawodnika
+            flash('Trener został pomyślnie dodany!', 'success')
+            return render_template('new_referee.html', user=current_user) # Przekierowanie na stronę główną admina
+        except ValueError as e:
+            # Obsługa błędu podczas tworzenia zawodnika
+            flash(str(e), 'danger')
+            return render_template('new_referee.html', user=current_user)  # Ponowne załadowanie formularza
+
+    # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
+    return render_template('new_referee.html', user=current_user)
