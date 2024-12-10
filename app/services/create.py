@@ -28,18 +28,20 @@ def create_tournament(name, type, status):
 
     if type == 'Liga':
         type = 'league'
+        round = None
     elif type == 'Turniej pucharowy':
         type = 'playoff'
+        round = 1
     else:
         raise ValueError('Błąd formatu!')
 
-    new_tournament = Tournament(name=name, type=type, status=status)
+    new_tournament = Tournament(name=name, type=type, status=status, round=round)
     db.session.add(new_tournament)
     db.session.commit()
     return new_tournament
 
 
-def create_team(name, players):
+def create_team(name, players, coach):
     if len(name) > 100 or len(name) < 4:
         raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
 
@@ -55,6 +57,8 @@ def create_team(name, players):
             raise ValueError(
                 f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
         p.team_id = new_team.id
+
+    coach.team_id = new_team.id
 
     db.session.commit()
 
@@ -134,6 +138,38 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
 
 def create_match_event(eventType, match_id, player_id):
 
+    match = Match.query.get(match_id)
+    if not match:
+        raise ValueError(f"Mecz o ID {match_id} nie istnieje.")
+    
+    # Pobranie turnieju
+    tournament = match.tournament
+    if not tournament:
+        raise ValueError(f"Turniej dla meczu o ID {match_id} nie istnieje.")
+
+    # Zabezpieczenie przed dodawaniem wydarzeń, jeśli wygenerowano kolejną rundę
+    if tournament.round > match.round:
+        raise ValueError(
+            "Nie można dodawać wydarzeń do meczu, ponieważ następna runda turnieju została już wygenerowana."
+        )
+    
+    
+    # Sprawdzenie, czy można dodać kolejny gol
+    if eventType == "goal":
+        # Zliczanie istniejących wydarzeń typu "goal" w meczu
+        current_home_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.home_team.players]
+        ])
+        current_away_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.away_team.players]
+        ])
+
+        # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
+        if (current_home_goals >= match.scoreHome) or (current_away_goals >= match.scoreAway):
+            raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
+
     new_match_event = MatchEvent(
         eventType=eventType,
         match_id=match_id,
@@ -141,6 +177,9 @@ def create_match_event(eventType, match_id, player_id):
     )
 
     player = Player.query.get(player_id)
+    if not player:
+        raise ValueError(f"Zawodnik o ID {player_id} nie istnieje.")
+    
     if eventType == "goal":
         player.goals+=1
     elif eventType == "redCard":

@@ -13,6 +13,7 @@ class Tournament(db.Model):
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
                        name='tournament_status_enum'), nullable=False)
 
+    round = db.Column(db.Integer)
     teams = db.relationship('Team', back_populates='tournament')
     matches = db.relationship(
         'Match', back_populates='tournament', cascade="all, delete-orphan")
@@ -109,6 +110,22 @@ class Tournament(db.Model):
         if tournament.status == 'ended':
             raise ValueError("Turniej już został zakończony.")
 
+        # Sprawdzenie, czy istnieją mecze o statusie 'planned'
+        planned_matches = Match.query.filter_by(
+            tournament_id=tournament.id, status='planned').count()
+        if planned_matches > 0:
+            raise ValueError(
+                "Nie można zakończyć turnieju, ponieważ istnieją niezakończone mecze.")
+
+        # Dodatkowe zabezpieczenie dla turnieju typu 'playoff'
+        if tournament.type == 'playoff':
+            last_round = tournament.round
+            ended_matches = Match.query.filter_by(
+                tournament_id=tournament.id, round=last_round, status='ended').count()
+            if ended_matches != 1:
+                raise ValueError(
+                    "Nie można zakończyć turnieju typu 'playoff', ponieważ ostatnia runda nie została poprawnie zakończona (dokładnie jeden mecz musi być zakończony).")
+
         tournament.status = 'ended'
         db.session.commit()
 
@@ -127,6 +144,10 @@ class Tournament(db.Model):
     @classmethod
     def delete(cls, tournament_id):
         tournament = cls.query.get(tournament_id)
+
+        if tournament.status != 'planned':
+            raise ValueError(
+                "Nie mozna usunąc turnieju, który trwa lub się odbył")
 
         for team in tournament.teams:
             team.tournament_id = None
@@ -175,14 +196,41 @@ class Tournament(db.Model):
         db.session.commit()
 
     @classmethod
-    def generate_next_round(cls, tournament, round):
-        previous_matches = Match.query.filter_by(
+    def generate_next_round(cls, tournament):
+        current_round = tournament.round
+
+        # Pobranie wszystkich meczów z aktualnej rundy
+        matches_in_round = Match.query.filter_by(
             tournament_id=tournament.id,
-            round=round-1,
-            status='ended'
+            round=current_round
         ).all()
-        winners = [match.home_team if match.scoreHome >
-                   match.scoreAway else match.away_team for match in previous_matches]
+
+        # Sprawdzenie, czy wszystkie mecze w rundzie są zakończone
+        if any(match.status != 'ended' for match in matches_in_round):
+            raise ValueError(
+                "Nie można wygenerować kolejnej rundy, dopóki wszystkie mecze obecnej rundy nie zostaną zakończone.")
+
+        # Pobranie zwycięzców z zakończonych meczów
+        winners = []
+        for match in matches_in_round:
+            if match.scoreHome > match.scoreAway:
+                winners.append(match.home_team)
+            elif match.scoreAway > match.scoreHome:
+                winners.append(match.away_team)
+            else:
+                raise ValueError(
+                    "Mecz zakończył się remisem, co nie jest dozwolone w turnieju play-off.")
+
+        if len(winners) < 2:
+            raise ValueError(
+                "Pozostał tylko jeden zwycięzca! Ostatnia runda juz się odbyla!")
+        # Sprawdzenie, czy liczba zwycięzców jest parzysta
+        if len(winners) % 2 != 0:
+            raise ValueError(
+                "Nieparzysta liczba zwycięzców - coś poszło nie tak.")
+
+        # Generowanie nowych meczów na podstawie zwycięzców
+        next_round = current_round + 1
         new_matches = []
         for i in range(0, len(winners), 2):
             match = Match(
@@ -192,11 +240,15 @@ class Tournament(db.Model):
                 status='planned',
                 scoreHome=None,
                 scoreAway=None,
-                round=round + 1
+                round=next_round
             )
             new_matches.append(match)
 
+        # Dodanie nowych meczów do bazy danych
         db.session.add_all(new_matches)
+
+        # Aktualizacja rundy w turnieju
+        tournament.round = next_round
         db.session.commit()
 
 
@@ -278,7 +330,7 @@ class Team(db.Model):
         if team.tournament_id:
             raise ValueError(
                 "Nie można usunąć drużyny uczestniczącej w turnieju.")
-        
+
         if team.home_matches or team.away_matches:
             raise ValueError(
                 "Nie można usunąć drużyny która grała/będzie grała mecze!")
@@ -386,7 +438,7 @@ class Player(db.Model):
         if player.team:
             raise ValueError(
                 f"Zawodnik należy do drużyny {player.team.name}. Najpierw usuń go z drużyny.")
-        
+
         if player.playerEvents:
             raise ValueError(
                 f"Zawodnik {player.firstName} {player.lastName} uczestniczył w MatchEventach! Nie mozesz go usunąć!")
@@ -518,8 +570,8 @@ class Match(db.Model):
         db.session.commit()
 
     @classmethod
-    def remove_match(cls, home_team_name, away_team_name, tournament_name):
-        match = cls.find_match(home_team_name, away_team_name, tournament_name)
+    def remove_match(cls, id):
+        match = cls.find_match_by_id(id)
         try:
             db.session.delete(match)
             db.session.commit()
@@ -648,6 +700,14 @@ class Coach(db.Model, UserMixin):
         return cls.query.filter(
             (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
         ).all()
+
+    # Znajduje trenera po ID
+    @classmethod
+    def find_coach_by_id(cls, id):
+        p = cls.query.get(id)
+        if not p:
+            raise ValueError("Nie istnieje trener o takim ID.")
+        return p
 
     # Bezpieczne usuwanie trenera
     @classmethod

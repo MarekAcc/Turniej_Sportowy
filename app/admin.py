@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import Tournament,Team,Match, Coach, Player
+from .models import Tournament,Team,Match, Coach, Player, MatchEvent
 from . import db
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
@@ -10,7 +10,6 @@ admin = Blueprint('admin', __name__)
 @admin.route('/home-admin')
 @login_required
 def home_admin():
-
     return render_template("home_admin.html", user=current_user)
 
 # Dodawanie zawodnika do bazy
@@ -67,38 +66,47 @@ def delete_player():
 def team_adder():
     # Pobranie listy zawodników bez przypisanej drużyny
     players = Player.get_players_without_team()
+    coaches = Coach.query.filter(Coach.firstName != 'ADMIN').all()
 
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
         name = request.form.get('name')  # Pobranie nazwy drużyny z formularza
         team_players = []  # Lista zawodników w drużynie
 
+        # Pobranie trenera druzyny z formularza
+        coach_id = request.form.get('coach_id')
+        try:
+            coach = Coach.find_coach_by_id(coach_id)
+        except ValueError as e:
+            flash(str(e), 'danger') 
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
+
         # Pobranie danych zawodników z formularza
         for i in range(1, 3):
             player_id = request.form.get(f'player_id_{i}')
             if not player_id:
                 flash('Wszyscy zawodnicy są wymagani!', 'danger')
-                return render_template("register_team.html", user=current_user, players=players)
+                return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
             player = Player.find_player_by_id(player_id)
             team_players.append(player)
 
         # Sprawdzenie, czy nazwa drużyny została podana
         if not name:
             flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template("register_team.html", user=current_user, players=players)
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
         try:
             # Próba utworzenia drużyny
-            create_team(name, team_players)
+            create_team(name, team_players,coach)
             flash('Drużyna została pomyślnie zarejestrowana!', 'success')
             return redirect(url_for('admin.home_admin', user=current_user))
         except ValueError as e:
             # Obsługa błędów podczas tworzenia drużyny
             flash(str(e), 'danger') 
-            return render_template("register_team.html", user=current_user, players=players)
+            return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
     # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
-    return render_template("register_team.html", user=current_user, players=players)
+    return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
 @admin.route('/delete-team', methods=['GET', 'POST'])
 @login_required
@@ -191,7 +199,11 @@ def choose_tournament_to_manage():
     all_tournaments = Tournament.query.all()
     if request.method == 'POST':
         tournament_id = request.form.get('tournament_id')
-        return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
+        if not tournament_id:
+            flash(f'Wybierz druzyne!', 'warning')
+            return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
+        else:
+            return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
 
     return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
 
@@ -250,14 +262,24 @@ def delete_tournament(tournament_id):
 def draw_next_round(tournament_id):
     # Obsługa losowania kolejnej rundy
     tournament = Tournament.find_tournament_by_id(tournament_id)
-    pass
-
+    try:
+        Tournament.generate_next_round(tournament)
+        return redirect(url_for('admin.home_admin'))
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('admin.home_admin'))
+    
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
 def choose_match_to_manage():
     all_matches = Match.query.all()
     if request.method == 'POST':
         match_id = request.form.get('match_id')
+        match = Match.find_match_by_id(match_id)
+        if match.status != 'planned':
+            flash('Nie mozna edytować zakonczonego meczu!', 'warning')
+            return render_template('choose_match_to_manage.html',matches=all_matches)
+        
         return redirect(url_for('admin.manage_match', match_id=match_id))
 
     return render_template('choose_match_to_manage.html',matches=all_matches)
@@ -282,6 +304,7 @@ def manage_match():
 
         players_home = homeTeam.players
         players_away = awayTeam.players
+        
         for player in players_home:
             if player.position =="field":
                 player.appearances+=1
