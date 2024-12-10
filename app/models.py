@@ -559,16 +559,16 @@ class Match(db.Model):
         homeTeam = match.home_team
         awayTeam = match.away_team
 
-        match.scoreHome = scoreHome
-        match.scoreAway = scoreAway
-        match.status = 'ended'
-
         if match.status == 'ended':
             raise ValueError("Mecz już został zakończony.")
         
+        match.scoreHome = scoreHome
+        match.scoreAway = scoreAway
         players_home = homeTeam.players
         players_away = awayTeam.players
-
+        
+        db.session.commit()
+        
         for player in players_home:
             if player.position =="field":
                 player.appearances+=1
@@ -580,6 +580,7 @@ class Match(db.Model):
             if player.status == "suspended":
                 player.status == "active"
         # Zapis zmian w bazie danych
+        match.status = 'ended'
         db.session.commit()
 
     @classmethod
