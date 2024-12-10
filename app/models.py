@@ -476,6 +476,8 @@ class Match(db.Model):
 
     matchEvents = db.relationship('MatchEvent', back_populates='match')
 
+
+
     @classmethod
     def get_matches(cls, n=None, sort_by="id"):
         query = cls.query.order_by(getattr(cls, sort_by).asc())
@@ -753,9 +755,14 @@ class Referee(db.Model):
 
     @classmethod
     def find_ref(cls, query):
-         return cls.query.filter(
-            (cls.firstName + ' ' + cls.lastName).like(f"%{query}%")
-        ).all()
+        """Znajdź sędziego na podstawie imienia i nazwiska."""
+        first_name, last_name = query.split(" ", 1) if " " in query else (query, "")
+        return cls.query.filter(
+            db.and_(
+                cls.firstName.ilike(f"%{first_name}%"),
+                cls.lastName.ilike(f"%{last_name}%")
+            )
+        ).first()
     
     @classmethod
     def find_referee_by_id(cls, id):
@@ -771,3 +778,6 @@ class Referee(db.Model):
         if n:
             query = query.limit(n)
         return query.all()
+
+        
+        

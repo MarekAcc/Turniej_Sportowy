@@ -306,11 +306,16 @@ def add_referee_to_match():
         if match.status != 'planned':
             flash('Nie mozna przypsać sędziego do meczu ktory juz się odbyl!', 'warning')
             return redirect(url_for('admin.home_admin'))
+        if match.referee:
+            flash ('Do meczu już jest przypisany sędza! ', 'danger')
+            return redirect(url_for('admin.add_referee_to_match', match_id=match_id))
         
         match.referee_id = referee_id
         referee.matches.append(match)
 
         db.session.commit()
+        flash('Przypisano sędziego do meczu! ', 'success')
+        return redirect(url_for('admin.home_admin'))
 
     return render_template('add_referee_to_match.html',referees=all_referees)
         

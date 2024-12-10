@@ -1,6 +1,6 @@
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import Tournament, Team, Match, Coach, Player, MatchEvent
+from .models import Tournament, Team, Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
@@ -123,7 +123,29 @@ def coaches():
 
 @views.route('/referees')
 def referees():
+    query = request.args.get('query')
+
+    if query:
+        try:
+            # Szukamy sędziego na podstawie zapytania
+            referee = Referee.find_ref(query)
+            referees = [referee] if referee else []
+
+            if not referee:
+                flash("Nie znaleziono sędziego.", 'danger')
+        except ValueError as e:
+            flash("Błąd w przetwarzaniu zapytania: " + str(e), 'danger')
+            referees = []
+    else:
+        referees = Referee.get_refs()
     return render_template("referees.html", referees=referees, user=current_user)
+
+@views.route('/referee/<int:referee_id>')
+def referee_details(referee_id):
+    referee = Referee.query.get(referee_id)
+    matches = Match.query.filter(Match.referee_id == referee_id)
+    
+    return render_template("referee_details.html", referee=referee, user=current_user, matches = matches)
 
 # detale dla stron --------------------------------------------------------------------------------------------------------
 
