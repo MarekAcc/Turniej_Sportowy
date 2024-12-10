@@ -136,18 +136,31 @@ def tournament_details(tournament_id):
         flash("Turniej nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
 
-    # Pobieramy drużyny w turnieju oraz ranknig
+    ranking = None
+    rounds = None
+
+    # Logika dla turniejów ligowych
     if tournament.type == 'league':
         ranking = calculate_ranking(tournament_id)
-    # Pobieramy drużyny w turnieju
-    else:
-    #   teams = tournament.teams
-        ranking = None
 
-    # Pobieramy mecze rozegrane i zaplanowane w turnieju
-    matches = Match.query.filter((Match.tournament_id == tournament_id)).all()
+    # Logika dla turniejów typu playoff
+    elif tournament.type == 'playoff':
+        matches = Match.query.filter_by(tournament_id=tournament_id).all()
+        # Grupujemy mecze według rundy
+        rounds = {r: [m for m in matches if m.round == r]
+                  for r in range(1, tournament.round + 1)}
 
-    return render_template("tournament_details.html", tournament=tournament, ranking=ranking, matches=matches, user=current_user)
+    # Pobieramy wszystkie mecze
+    matches = Match.query.filter(Match.tournament_id == tournament_id).all()
+
+    return render_template(
+        "tournament_details.html",
+        tournament=tournament,
+        ranking=ranking,
+        matches=matches,
+        rounds=rounds,
+        user=current_user
+    )
 
 
 @views.route('/team/<int:team_id>')
@@ -526,21 +539,20 @@ def manage_match():
         match.status = 'ended'
 
         # Aktualizacja punktów dla drużyn w turnieju ligowym
-        print(type(scoreHome))
+
         if match.tournament.type == 'league':
             home_team = match.home_team
             away_team = match.away_team
-            print('wynik')
+
             if not home_team or not away_team:
                 raise ValueError(
                     "Nie można znaleźć drużyn przypisanych do meczu.")
 
             if scoreHome > scoreAway:
                 home_team.score += 3  # Gospodarz wygrywa
-                print('dupa')
+
             elif scoreHome < scoreAway:
                 away_team.score += 3  # Goście wygrywają
-                print('dupa2')
 
             else:
                 home_team.score += 1  # Remis

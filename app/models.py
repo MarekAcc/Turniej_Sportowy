@@ -175,7 +175,7 @@ class Tournament(db.Model):
                     round=None
                 )
                 matches.append(match1)
-        elif tournament.type == 'playoff':
+        elif tournament.type == 'playoff':  # 1 runda
             shuffle(teams)
             # Generowanie meczów pierwszej rundy
             for i in range(0, len(teams), 2):

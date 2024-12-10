@@ -1,19 +1,20 @@
 from app.models import Tournament, Team, Match
 from app import db
 
+
 def calculate_ranking(tournmanet_id):
     tournament = Tournament.find_tournament_by_id(tournmanet_id)
     if not tournament:
         raise ValueError("Turniej nie istnieje.")
-    
+
     if tournament.type != 'league':
         raise ValueError("Turniej musi być ligą.")
-    
+
     # Pobieramy wszystkie mecze należące do turnieju
     matches = Match.query.filter_by(tournament_id=tournament.id).all()
     if not matches:
         raise ValueError("Brak meczów w turnieju.")
-    
+
     # Wyznaczamy unikalne drużyny na podstawie meczów
     teams = set()
     for match in matches:
@@ -37,10 +38,7 @@ def calculate_ranking(tournmanet_id):
             ranking[match.away_team] += 1
 
     # Sortowanie rankingu od największej liczby punktów
-    sorted_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
-    
+    sorted_ranking = dict(
+        sorted(ranking.items(), key=lambda item: item[1], reverse=True))
+
     return sorted_ranking
-
-    
-
-
