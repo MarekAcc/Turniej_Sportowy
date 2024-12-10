@@ -7,12 +7,12 @@ Mecz - {{ match.home_team.name }} vs {{ match.away_team.name }}
 {% block content %}
 <h1>{{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
 <p>Data: {{ match.date }}</p>
-<p>Wynik: {{ match.home_score }} - {{ match.away_score }}</p>
+<p>Wynik: {{ match.scoreHome }} - {{ match.scoreAway }}</p>
 
 <h2>Wydarzenia w meczu</h2>
 <ul>
     {% for event in match_events %}
-    <li>{{ event.event_type }}: {{ event.description }}</li>
+    <li>{{ event.eventType }}: {{ event.player.firstName }} {{ event.player.lastName }}</li>
     {% endfor %}
 </ul>
 

@@ -7,8 +7,47 @@
 {% block content %}
 <h1>{{ tournament.name }}</h1>
 
+{% if tournament.type == 'league' %}
 <!-- Tabela ligowa -->
 <h2>Tabela Ligowa</h2>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    table thead tr {
+        background-color: #000202;
+        color: #ffffff;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    table th,
+    table td {
+        border: 1px solid #dddddd;
+        padding: 12px 15px;
+    }
+
+    table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    table tbody tr:last-of-type {
+        border-bottom: 2px solid #000202;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
 <table>
     <thead>
         <tr>
@@ -20,16 +59,21 @@
         {% for team in teams %}
         <tr>
             <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
-            <td><!-- Tutaj wyniki drużyny w turnieju --></td>
+            <td></td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">Brak wyników</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
+{% elif tournament.type == 'playoff' %}
 <!-- Drabinka (Playoff) -->
 <h2>Drabinka</h2>
-<!-- Tutaj wyświetlimy drabinkę turnieju, zależnie od jego formatu -->
 
+{% endif %}
 <!-- Mecze -->
 <h2>Mecze</h2>
 <ul>

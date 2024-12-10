@@ -10,7 +10,8 @@ Choose match to manage
         <select name="match_id" id="match_id">
             {% for match in matches %}
             <option value="{{ match.id }}">
-                {{ match.home_team.name }} vs {{ match.away_team.name }} ({{ match.tournament.name }} , {{  match.status }})
+                {{ match.home_team.name }} vs {{ match.away_team.name }} ({{ match.tournament.name }} , {{ match.status
+                }})
             </option>
             {% endfor %}
         </select>

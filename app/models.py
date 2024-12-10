@@ -7,7 +7,7 @@ from random import shuffle
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(101), unique=True, nullable=False)
+    name = db.Column(db.String(102), unique=True, nullable=False)
     type = db.Column(db.Enum('league', 'playoff',
                      name='tournament_type_enum'), nullable=False)
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
@@ -552,12 +552,16 @@ class Match(db.Model):
     @classmethod
     def finish_match(cls, home_team_name, away_team_name, tournament_name, score_home, score_away):
         match = cls.find_match(home_team_name, away_team_name, tournament_name)
+
         if match.status == 'ended':
             raise ValueError("Mecz już został zakończony.")
 
-        match.scoreHome = score_home
-        match.scoreAway = score_away
+        # Ustawianie wyników meczu
+        score_home = match.scoreHome
+        score_away = match.scoreAway
         match.status = 'ended'
+
+        # Zapis zmian w bazie danych
         db.session.commit()
 
     @classmethod

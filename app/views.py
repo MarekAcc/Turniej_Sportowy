@@ -8,6 +8,8 @@ from collections import defaultdict
 
 views = Blueprint('views', __name__)
 
+# HOME PAGE --------------------------------------------------------------------------------------------------------
+
 
 @views.route('/')
 def home():
@@ -72,21 +74,23 @@ def players():
     query = request.args.get('query')
 
     if query:
-        first_name, *last_name_parts = query.split(' ', 1)
-        last_name = last_name_parts[0] if last_name_parts else ""
+        # Rozdzielamy query na imię i nazwisko, jeśli wpisano pełne imię i nazwisko
+        parts = query.split(' ', 1)
+        if len(parts) == 2:  # Jeśli podano dwa słowa
+            first_name, last_name = parts
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{first_name}%")) &
+                (Player.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:  # Jeśli podano jedno słowo, szukamy po imieniu lub nazwisku
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{query}%")) |
+                (Player.lastName.ilike(f"%{query}%"))
+            ).all()
 
-        # Wykorzystanie istniejącej metody do wyszukiwania
-        try:
-            players = Player.find_player(
-                first_name=first_name, last_name=last_name)
-        except ValueError as e:
-            players = []
-            message = str(e)
-        else:
-            message = None
+        message = None if players else "Nie znaleziono zawodników"
     else:
-
-        players = Player.get_players()
+        players = Player.query.all()
         message = None
 
     return render_template("players.html", players=players, message=message, user=current_user)
@@ -97,10 +101,21 @@ def coaches():
     query = request.args.get('query')
 
     if query:
-        # Szukamy trenera po pełnym imieniu i nazwisku
-        coaches = Coach.find_coach(query)
+        # Szukamy trenera po pełnym imieniu i nazwisku lub częściowym
+        parts = query.split(' ', 1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{first_name}%")) &
+                (Coach.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{query}%")) |
+                (Coach.lastName.ilike(f"%{query}%"))
+            ).all()
     else:
-        coaches = Coach.get_coaches()
+        coaches = Coach.query.all()
 
     return render_template("coaches.html", coaches=coaches, user=current_user)
 
@@ -108,6 +123,8 @@ def coaches():
 @views.route('/referees')
 def referees():
     return render_template("referees.html", referees=referees, user=current_user)
+
+# detale dla stron --------------------------------------------------------------------------------------------------------
 
 
 @views.route('/tournament/<int:tournament_id>')
@@ -129,16 +146,30 @@ def tournament_details(tournament_id):
 
 @views.route('/team/<int:team_id>')
 def team_details(team_id):
+    # Pobieramy drużynę na podstawie ID
     team = Team.query.get(team_id)
 
     if not team:
         flash("Drużyna nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
 
-    # Pobieramy mecze drużyny w turnieju
+    # Pobieramy trenera drużyny
+    coach = team.teamCoach
+
+    # Pobieramy zawodników drużyny
+    players = team.players
+
+    # Pobieramy mecze drużyny (zarówno jako gospodarze, jak i goście)
     matches = team.home_matches + team.away_matches
 
-    return render_template("team_details.html", team=team, matches=matches, user=current_user)
+    return render_template(
+        "team_details.html",
+        team=team,
+        coach=coach,
+        players=players,
+        matches=matches,
+        user=current_user
+    )
 
 
 @views.route('/match/<int:match_id>')
@@ -155,7 +186,49 @@ def match_details(match_id):
     return render_template("match_details.html", match=match, match_events=match_events, user=current_user)
 
 
+@views.route('/player/<int:player_id>')
+def player_details(player_id):
+    # Pobieramy zawodnika na podstawie ID
+    player = Player.query.get(player_id)
+
+    if not player:
+        flash("Zawodnik nie istnieje", "danger")
+        return redirect(url_for('views.players'))
+
+    # Pobieramy drużynę zawodnika
+    team = player.team
+
+    # Pobieramy MatchEventy zawodnika
+    match_events = player.playerEvents
+
+    return render_template(
+        "player_details.html",
+        player=player,
+        team=team,
+        match_events=match_events,
+        user=current_user
+    )
+
+
+@views.route('/coach/<int:coach_id>')
+def coach_details(coach_id):
+    coach = Coach.query.get(coach_id)
+
+    if not coach:
+        flash("Trener nie istnieje", "danger")
+        return redirect(url_for('views.coaches'))
+
+    team = coach.team  # Relacja z modelem `Team`
+
+    return render_template(
+        "coach_details.html",
+        coach=coach,
+        team=team,
+        user=current_user
+    )
+
 # FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
+
 
 @views.route('/show-tournament', methods=['GET', 'POST'])
 @login_required
@@ -446,7 +519,29 @@ def manage_match():
         match.scoreAway = scoreAway
         match.status = 'ended'
 
-        # db.session.commit()
+        # Aktualizacja punktów dla drużyn w turnieju ligowym
+        print(type(scoreHome))
+        if match.tournament.type == 'league':
+            home_team = match.home_team
+            away_team = match.away_team
+            print('wynik')
+            if not home_team or not away_team:
+                raise ValueError(
+                    "Nie można znaleźć drużyn przypisanych do meczu.")
+
+            if scoreHome > scoreAway:
+                home_team.score += 3  # Gospodarz wygrywa
+                print('dupa')
+            elif scoreHome < scoreAway:
+                away_team.score += 3  # Goście wygrywają
+                print('dupa2')
+
+            else:
+                home_team.score += 1  # Remis
+                away_team.score += 1  # Remis
+                print('dupa3')
+        print('2')
+        db.session.commit()
         flash('Dodano wynik meczu!', 'success')
         return redirect(url_for('views.home_admin'))
 
