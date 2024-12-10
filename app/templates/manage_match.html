@@ -8,11 +8,13 @@ Admin page
 <form method="POST">
     <div class="form-group">
         <label for="scoreHome">Wynik druzyny {{ homeTeam.name }}</label>
-        <input type="number" class="form-control" name="scoreHome" id="scoreHome" required>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" name="scoreHome"
+            id="scoreHome" required>
     </div>
     <div class="form-group">
         <label for="scoreAway">Wynik druzyny {{ awayTeam.name }}</label>
-        <input type="number" class="form-control" name="scoreAway" id="scoreAway" required>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" name="scoreAway"
+            id="scoreAway" required>
     </div>
 
     <br />
