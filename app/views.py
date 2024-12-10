@@ -74,21 +74,23 @@ def players():
     query = request.args.get('query')
 
     if query:
-        first_name, *last_name_parts = query.split(' ', 1)
-        last_name = last_name_parts[0] if last_name_parts else ""
+        # Rozdzielamy query na imię i nazwisko, jeśli wpisano pełne imię i nazwisko
+        parts = query.split(' ', 1)
+        if len(parts) == 2:  # Jeśli podano dwa słowa
+            first_name, last_name = parts
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{first_name}%")) &
+                (Player.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:  # Jeśli podano jedno słowo, szukamy po imieniu lub nazwisku
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{query}%")) |
+                (Player.lastName.ilike(f"%{query}%"))
+            ).all()
 
-        # Wykorzystanie istniejącej metody do wyszukiwania
-        try:
-            players = Player.find_player(
-                first_name=first_name, last_name=last_name)
-        except ValueError as e:
-            players = []
-            message = str(e)
-        else:
-            message = None
+        message = None if players else "Nie znaleziono zawodników"
     else:
-
-        players = Player.get_players()
+        players = Player.query.all()
         message = None
 
     return render_template("players.html", players=players, message=message, user=current_user)
@@ -99,10 +101,21 @@ def coaches():
     query = request.args.get('query')
 
     if query:
-        # Szukamy trenera po pełnym imieniu i nazwisku
-        coaches = Coach.find_coach(query)
+        # Szukamy trenera po pełnym imieniu i nazwisku lub częściowym
+        parts = query.split(' ', 1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{first_name}%")) &
+                (Coach.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{query}%")) |
+                (Coach.lastName.ilike(f"%{query}%"))
+            ).all()
     else:
-        coaches = Coach.get_coaches()
+        coaches = Coach.query.all()
 
     return render_template("coaches.html", coaches=coaches, user=current_user)
 
@@ -171,7 +184,49 @@ def match_details(match_id):
     return render_template("match_details.html", match=match, match_events=match_events, user=current_user)
 
 
+@views.route('/player/<int:player_id>')
+def player_details(player_id):
+    # Pobieramy zawodnika na podstawie ID
+    player = Player.query.get(player_id)
+
+    if not player:
+        flash("Zawodnik nie istnieje", "danger")
+        return redirect(url_for('views.players'))
+
+    # Pobieramy drużynę zawodnika
+    team = player.team
+
+    # Pobieramy MatchEventy zawodnika
+    match_events = player.playerEvents
+
+    return render_template(
+        "player_details.html",
+        player=player,
+        team=team,
+        match_events=match_events,
+        user=current_user
+    )
+
+
+@views.route('/coach/<int:coach_id>')
+def coach_details(coach_id):
+    coach = Coach.query.get(coach_id)
+
+    if not coach:
+        flash("Trener nie istnieje", "danger")
+        return redirect(url_for('views.coaches'))
+
+    team = coach.team  # Relacja z modelem `Team`
+
+    return render_template(
+        "coach_details.html",
+        coach=coach,
+        team=team,
+        user=current_user
+    )
+
 # FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
+
 
 @views.route('/show-tournament', methods=['GET', 'POST'])
 @login_required
@@ -315,6 +370,7 @@ def draw_next_round(tournament_id):
     pass
 
 
+# Dodawanie zawodnika do bazy
 @views.route('/new-player', methods=['GET', 'POST'])
 @login_required
 def player_adder():
@@ -329,7 +385,7 @@ def player_adder():
         try:
             create_player(firstName, lastName, age)
             flash('Zawodnik został pomyślnie dodany!', 'success')
-            return redirect(url_for('views.home_admin'))
+            return redirect(url_for('views.home_admin', user=current_user))
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template('new_player.html', user=current_user)
@@ -499,3 +555,86 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+# --------------COACH OD IGORA--------------------
+
+
+@views.route('/coach-home', methods=['GET', 'POST'])
+@login_required
+def coach_home():
+    return render_template("trener_p.html", user=current_user)
+
+
+@views.route('/swap-players', methods=['GET', 'POST'])
+@login_required
+def swap_players():
+    players = Player.get_players()
+    if request.method == 'POST':
+        # Fetch and validate input data
+        new_player_id = request.form.get("new_player_id")
+        player_id = request.form.get("player_id")
+
+        if not new_player_id or not player_id:
+            flash("Należy wypełnić oba pola. ", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        try:
+            new_player_id = int(new_player_id)
+            player_id = int(player_id)
+        except ValueError:
+            flash("Wybierz istniejących zawodników.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        # Fetch players from the database by ID
+        new_player = Player.query.get(new_player_id)
+        player = Player.query.get(player_id)
+
+        if not new_player or not player:
+            flash("Jeden lub obydwaj zawodnicy nie istnieją.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        # Validation logic for swapping players
+        if player.team_id == new_player.team_id:
+            flash("Wybrani zawodnicy należą do tej samej drużyny.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        if new_player.team_id is not None:
+            flash("Nowy gracz ma już przypisaną drużynę.", "danger")
+            return render_template("swap_players.html", user=current_user, players=players)
+
+        try:
+            Team.swap_players(player_id, new_player_id)
+            flash("Wymiana zawodnika zakończona!", "success")
+        except ValueError as e:
+            flash(str(e), "danger")
+        except Exception as e:
+            flash("An unexpected error occurred. Please try again.", "danger")
+
+        return render_template("swap_players.html", user=current_user, players=players)
+
+    return render_template("swap_players.html", user=current_user, players=players)
+
+
+@views.route('/change-positions', methods=['GET', 'POST'])
+@login_required
+def change_positions():
+    players = Player.get_players()
+    if request.method == "POST":
+
+        player_id = request.form.get("player_id")
+        position = request.form.get("position")
+
+        position = str(position)
+        player_id = int(player_id)
+
+        player = Player.query.get(player_id)
+        if player.position == position:
+            flash("Zawodnik już jest na tej pozycji", "danger")
+            return render_template("change_positions.html", user=current_user, players=players)
+        if player.team_id == None:
+            flash("Ten zawodnik nie należy do żadnej drużyny", "danger")
+            return render_template("change_positions.html", user=current_user, players=players)
+        Player.change_position(player_id, position)
+        flash("Zmiana pozycji zakończona! ", "success")
+        return render_template("change_positions.html", user=current_user, players=players)
+    return render_template("change_positions.html", user=current_user, players=players)

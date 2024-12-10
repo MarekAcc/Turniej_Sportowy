@@ -101,8 +101,8 @@ class Tournament(db.Model):
             raise ValueError("Wystąpił błąd przy usuwaniu drużyny z turnieju.")
 
     @classmethod
-    def finish(cls, name):
-        tournament = cls.query.filter_by(name=name).first()
+    def finish(cls, tournament_id):
+        tournament = cls.query.get(tournament_id)
         if not tournament:
             raise ValueError("Turniej nie istnieje.")
 
@@ -113,8 +113,8 @@ class Tournament(db.Model):
         db.session.commit()
 
     @classmethod
-    def cancel(cls, name):
-        tournament = cls.query.filter_by(name=name).first()
+    def cancel(cls, tournament_id):
+        tournament = cls.query.get(tournament_id)
         if not tournament:
             raise ValueError("Turniej nie istnieje.")
 
@@ -266,6 +266,7 @@ class Team(db.Model):
         Usuwa drużynę z bazy danych. Przed usunięciem:
         - Odłącza zawodników i trenera.
         - Sprawdza, czy drużyna uczestniczy w turnieju.
+        - Sprawdza czy druzyna gra/bedzie grała jakieś mecze
         """
         if not team_id:
             raise ValueError("Musisz podać ID drużyny do usunięcia.")
@@ -277,12 +278,18 @@ class Team(db.Model):
         if team.tournament_id:
             raise ValueError(
                 "Nie można usunąć drużyny uczestniczącej w turnieju.")
+        
+        if team.home_matches or team.away_matches:
+            raise ValueError(
+                "Nie można usunąć drużyny która grała/będzie grała mecze!")
 
         # Odłącz zawodników i trenera
         for player in team.players:
             player.team_id = None
         if team.teamCoach:
             team.teamCoach.team_id = None
+
+        db.session.commit()
 
         db.session.delete(team)
         db.session.commit()
@@ -379,6 +386,10 @@ class Player(db.Model):
         if player.team:
             raise ValueError(
                 f"Zawodnik należy do drużyny {player.team.name}. Najpierw usuń go z drużyny.")
+        
+        if player.playerEvents:
+            raise ValueError(
+                f"Zawodnik {player.firstName} {player.lastName} uczestniczył w MatchEventach! Nie mozesz go usunąć!")
 
         # Usuwamy zawodnika
         db.session.delete(player)

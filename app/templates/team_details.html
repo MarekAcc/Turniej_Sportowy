@@ -10,7 +10,7 @@
 <h2>Trener</h2>
 <p>
     {% if coach %}
-    {{ coach.firstName }} {{ coach.lastName }}
+    imie i nazwisko trenera: {{ coach.firstName }} {{ coach.lastName }}
     {% else %}
     Brak przypisanego trenera.
     {% endif %}
@@ -20,7 +20,12 @@
 <ul>
     {% if players %}
     {% for player in players %}
-    <li>{{ player.firstName }} {{ player.lastName }} - {{ player.position }}</li>
+    <li>
+        <a href="{{ url_for('views.player_details', player_id=player.id) }}">
+            {{ player.firstName }} {{ player.lastName }}
+        </a>
+        (Wiek: {{ player.age }}, Pozycja: {{ player.position }}, Status: {{ player.status }})
+    </li>
     {% endfor %}
     {% else %}
     <li>Brak zawodników w tej drużynie.</li>

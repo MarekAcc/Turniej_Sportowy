@@ -10,7 +10,7 @@ Delete team
         <select name="team_id" id="team_id">
             {% for team in teams %}
             <option value="{{ team.id }}">
-                {{ team.name }} ({{ team.tournament.name}})
+                {{ team.name }} ({{ team.tournament.name }})
             </option>
             {% endfor %}
         </select>

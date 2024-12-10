@@ -1,7 +1,12 @@
-{%extends "base.html"%}
-{%block title%}
-Trainer page
-{%endblock title%}
-{%block content%}
-<h1>This is trainer page</h1>
-{%endblock content%}
+{% extends "base.html" %}
+
+{% block title %}Strona Trenerska{% endblock %}
+
+{% block content %}
+<h3>Strona główna - zarządzaj zawodnikami</h3>
+<div class="menu">
+    <button onclick="window.location.href='{{ url_for('views.swap_players') }}'">Wymień zawodnika</button>
+    <button onclick="window.location.href='{{ url_for('views.change_positions') }}'">Zmień ustawienie</button>
+
+</div>
+{% endblock %}

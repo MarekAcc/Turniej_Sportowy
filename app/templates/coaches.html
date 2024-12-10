@@ -14,7 +14,11 @@ Trenerzy
 
 <ul>
     {% for coach in coaches %}
-    <li>{{ coach.firstName }} {{ coach.lastName }}</li>
+    <li>
+        <a href="{{ url_for('views.coach_details', coach_id=coach.id) }}">
+            {{ coach.firstName }} {{ coach.lastName }}
+        </a>
+    </li>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}

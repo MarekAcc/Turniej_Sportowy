@@ -4,10 +4,11 @@ from app.models import Player, Tournament, Team, Coach, Match, MatchEvent
 from app import db
 
 
+# Funkcja dodawania zawodnika do bazy
 def create_player(firstName, lastName, age):
-    if len(firstName) > 50:
+    if len(firstName) > 50 or len(firstName) < 1:
         raise ValueError('Imię jest za długie!')
-    if len(lastName) > 50:
+    if len(lastName) > 50 or len(lastName) < 1:
         raise ValueError('Nazwisko jest za długie!')
     if int(age) < 12 or int(age) > 99:
         raise ValueError('Nieprawidłowy wiek!')
@@ -16,8 +17,6 @@ def create_player(firstName, lastName, age):
                         age=int(age), status='active')
     db.session.add(new_player)
     db.session.commit()
-
-    # tutaj pozmieniać to co będzie sprawdzanie przy frontendzie a co przy backendzie
 
 
 def create_tournament(name, type, status):
@@ -113,13 +112,25 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
         status=status,
         tournament_id=tournament_id
     )
+    '''Dodać do aktualizuj status meczu'''
+    players_home = home_team.players
+    players_away = away_team.players
+    for player in players_home:
+        if player.position =="field":
+            player.appearances+=1
+        if player.status == "suspended":
+            player.status == "active"
+    for player in players_away:
+        if player.position == "field":
+            player.appearances+=1 
+        if player.status == "suspended":
+            player.status == "active"
 
     # Zapis do bazy danych
     db.session.add(new_match)
     db.session.commit()
 
     return new_match
-
 
 def create_match_event(eventType, match_id, player_id):
 
@@ -128,6 +139,14 @@ def create_match_event(eventType, match_id, player_id):
         match_id=match_id,
         player_id=player_id
     )
+
+    player = Player.query.get(player_id)
+    if eventType == "goal":
+        player.goals+=1
+    elif eventType == "redCard":
+        player.status = "suspended"
+    
+        
 
     db.session.add(new_match_event)
     db.session.commit()
