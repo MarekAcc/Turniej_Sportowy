@@ -250,6 +250,7 @@ def delete_tournament(tournament_id):
 def draw_next_round(tournament_id):
     # Obsługa losowania kolejnej rundy
     tournament = Tournament.find_tournament_by_id(tournament_id)
+    Tournament.generate_next_round(tournament)
     pass
 
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])

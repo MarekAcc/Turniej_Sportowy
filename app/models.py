@@ -13,6 +13,7 @@ class Tournament(db.Model):
     status = db.Column(db.Enum('active', 'ended', 'canceled', 'planned',
                        name='tournament_status_enum'), nullable=False)
 
+    round = db.Column(db.Integer)
     teams = db.relationship('Team', back_populates='tournament')
     matches = db.relationship(
         'Match', back_populates='tournament', cascade="all, delete-orphan")
@@ -176,10 +177,11 @@ class Tournament(db.Model):
         db.session.commit()
     
     @classmethod
-    def generate_next_round(cls,tournament, round):
+    def generate_next_round(cls,tournament):
+        round = tournament.round
         previous_matches = Match.query.filter_by(
             tournament_id=tournament.id,
-            round=round-1,
+            round=round,
             status='ended'
         ).all()
         winners = [match.home_team if match.scoreHome > match.scoreAway else match.away_team for match in previous_matches]
@@ -192,10 +194,11 @@ class Tournament(db.Model):
                 status='planned',
                 scoreHome=None,
                 scoreAway=None,
-                round = round + 1
+                round = round+1
             )
             new_matches.append(match)
 
+        tournament.round = round + 1
         db.session.add_all(new_matches)
         db.session.commit()
 
