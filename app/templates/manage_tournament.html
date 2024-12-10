@@ -11,25 +11,25 @@ Manage tournament
 
 <div class="actions">
     <!-- Przerwij turniej -->
-    <form method="POST" action="{{ url_for('views.cancel_tournament', tournament_id=tournament.id) }}">
+    <form method="POST" action="{{ url_for('admin.cancel_tournament', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-danger">Przerwij turniej (Anuluj)</button>
     </form>
 
     </br>
     <!-- Zakończ turniej -->
-    <form method="POST" action="{{ url_for('views.end_tournament', tournament_id=tournament.id) }}">
+    <form method="POST" action="{{ url_for('admin.end_tournament', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-warning">Zakończ turniej</button>
     </form>
     </br>
     <!-- Usuń turniej z bazy -->
-    <form method="POST" action="{{ url_for('views.delete_tournament', tournament_id=tournament.id) }}">
+    <form method="POST" action="{{ url_for('admin.delete_tournament', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-danger">Usuń turniej z bazy</button>
     </form>
 
     <br />
     <!-- Losuj kolejną rundę -->
     {% if tournament.type == 'playoff' %}
-    <form method="POST" action="{{ url_for('views.draw_next_round', tournament_id=tournament.id) }}">
+    <form method="POST" action="{{ url_for('admin.draw_next_round', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-primary">Losuj kolejną rundę</button>
     </form>
     {% endif %}
