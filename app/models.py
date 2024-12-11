@@ -582,7 +582,6 @@ class Match(db.Model):
             if player.status == "suspended":
                 player.status == "active"
         # Zapis zmian w bazie danych
-        match.status = 'ended'
         db.session.commit()
 
     @classmethod

@@ -20,7 +20,7 @@ Create tournament
     </div>
     <div class="form-group">
         <label for="numTeams">Liczba Drużyn</label>
-        <input type="number" class="form-control" name="numTeams" id="numTeams" required>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" name="numTeams" id="numTeams" required>
     </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>

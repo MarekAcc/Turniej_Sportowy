@@ -16,9 +16,14 @@ Admin page
         <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" name="scoreAway"
             id="scoreAway" required>
     </div>
+    <div class="form-group">
+        <label for="scoreAway">Liczba czerwonych kartek w meczu</label>
+        <input type="number" oninput="validity.valid||(value='');" min="0" class="form-control" name="redCardsNum"
+            id="redCardsNum" required>
+    </div>
 
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Przejdź dalej</button>
 </form>
 
 {% endblock content %}

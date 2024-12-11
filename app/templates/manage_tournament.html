@@ -17,11 +17,6 @@ Manage tournament
 </div>
 
 <div class="actions">
-    <!-- Przerwij turniej -->
-    <form method="POST" action="{{ url_for('admin.cancel_tournament', tournament_id=tournament.id) }}">
-        <button type="submit" class="btn btn-danger">Przerwij turniej (Anuluj)</button>
-    </form>
-
     </br>
     <!-- Zakończ turniej -->
     <form method="POST" action="{{ url_for('admin.end_tournament', tournament_id=tournament.id) }}">

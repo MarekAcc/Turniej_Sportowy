@@ -40,7 +40,6 @@ def create_tournament(name, type, status):
     db.session.commit()
     return new_tournament
 
-
 def create_team(name, players, coach):
     if len(name) > 100 or len(name) < 4:
         raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
@@ -57,11 +56,11 @@ def create_team(name, players, coach):
             raise ValueError(
                 f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
         p.team_id = new_team.id
+        p.position = 'field'
 
     coach.team_id = new_team.id
 
     db.session.commit()
-
 
 def create_coach(firstName, lastName, age, login, password1, password2):
     if len(firstName) > 50:
@@ -91,7 +90,6 @@ def create_coach(firstName, lastName, age, login, password1, password2):
     db.session.add(new_coach)
     db.session.commit()
     return new_coach
-
 
 def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
     # Pobranie drużyn z bazy danych
@@ -148,7 +146,7 @@ def create_match_event(eventType, match_id, player_id):
         raise ValueError(f"Turniej dla meczu o ID {match_id} nie istnieje.")
 
     # Zabezpieczenie przed dodawaniem wydarzeń, jeśli wygenerowano kolejną rundę
-    if tournament.round > match.round:
+    if tournament.type == 'playoff' and tournament.round > match.round:
         raise ValueError(
             "Nie można dodawać wydarzeń do meczu, ponieważ następna runda turnieju została już wygenerowana."
         )
@@ -167,13 +165,8 @@ def create_match_event(eventType, match_id, player_id):
         ])
 
         # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
-        print(current_home_goals, current_away_goals)
-        print(match.scoreHome,match.scoreAway)
-        if (current_home_goals == match.scoreHome and current_away_goals == match.scoreAway):
-            raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
-
-
-             
+        if (current_home_goals and current_home_goals >= match.scoreHome) and (current_away_goals and current_away_goals >= match.scoreAway):
+            raise ValueError(f"Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
 
     new_match_event = MatchEvent(
         eventType=eventType,
@@ -190,8 +183,6 @@ def create_match_event(eventType, match_id, player_id):
     elif eventType == "redCard":
         player.status = "suspended"
     
-        
-
     db.session.add(new_match_event)
     db.session.commit()
 

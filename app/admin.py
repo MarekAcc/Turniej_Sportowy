@@ -215,7 +215,7 @@ def manage_tournament():
     tournament = Tournament.find_tournament_by_id(tournament_id)
 
     if request.method == 'POST':
-        print("ajaja")
+        print()
 
     return render_template('manage_tournament.html',tournament=tournament)
 
@@ -340,49 +340,72 @@ def manage_match():
     if request.method == 'POST':
         scoreHome = request.form.get('scoreHome')
         scoreAway = request.form.get('scoreAway')
+        redCardsNum = request.form.get('redCardsNum')
 
         try:
             Match.finish_match(match, scoreHome,scoreAway)
             flash('Dodano wynik meczu!', 'success')
-            return redirect(url_for('admin.match_event_adder'))
+            return redirect(url_for('admin.match_event_adder',redCardsNum=redCardsNum, match_id=match_id))
         except ValueError as e:
             flash(str(e), 'danger')
             return redirect(url_for('admin.home_admin'))
-
 
     return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
 @admin.route('/match-event-adder', methods=['GET', 'POST'])
 @login_required
 def match_event_adder():
-    matches = Match.get_matches()
-    players = Player.get_players()
+    match_id = request.args.get('match_id', type=int)
+    redCardsNum = request.args.get('redCardsNum', type=int)
+
+    # Wyszukanie meczu
+    try:
+        match = Match.find_match_by_id(match_id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for('admin.home_admin'))
+
+
     if request.method == "POST":
-        match_id = int(request.form.get('match_id'))
-        player_id = int(request.form.get('player_id'))
-        eventType = request.form.get('eventType')
-
-        match = next((m for m in matches if m.id == match_id), None)
-        player = next((p for p in players if p.id == player_id), None)
-
-        if not match or not player:
-            flash("Nie znaleziono meczu lub gracza.", "error")
-            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-        # Sprawdź, czy gracz należy do jednej z drużyn w meczu
-        if player.team_id not in {match.homeTeam_id, match.awayTeam_id}:
-            flash("Wybrany gracz nie brał udziału w tym meczu.", "danger")
-            return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-        # Utwórz event, jeśli gracz uczestniczył w meczu
         try:
-            create_match_event(eventType, match_id, player_id)
-            flash("Pomyślnie dodano match-event!", "success")
-        except Exception as e:
-            flash(f"Nie udało się dodać match-event: {e}", "danger")
+            # Dodaj strzelców goli dla drużyny gospodarzy
+            for i in range(match.scoreHome):
+                player_id = request.form.get(f'home_scorer_{i}', type=int)
+                if not player_id:
+                    raise ValueError(f"Nie wybrano strzelca dla gola {i + 1} drużyny {match.home_team.name}")
+                
+                create_match_event('goal', match_id, player_id)
 
-        return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+            # Dodaj strzelców goli dla drużyny gości
+            for i in range(match.scoreAway):
+                player_id = request.form.get(f'away_scorer_{i}', type=int)
+                if not player_id:
+                    raise ValueError(f"Nie wybrano strzelca dla gola {i + 1} drużyny {match.away_team.name}")
+                
+                create_match_event('goal', match_id, player_id)
 
-    # Obsługa metody GET
-    return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+                # Dodaj czerwone kartki
+            for i in range(redCardsNum):
+                player_id = request.form.get(f'red_card_{i}', type=int)
+                if not player_id:
+                    raise ValueError(f"Nie wybrano zawodnika dla czerwonej kartki {i + 1}")
+                
+                create_match_event('redCard', match_id, player_id)
+
+
+            match.status = 'ended'
+            db.session.commit()
+
+            flash("Zdarzenia meczu zostały pomyślnie dodane. ", "success")
+            return redirect(url_for('admin.home_admin'))
+        
+        except ValueError as e:
+            flash(str(e), "danger")
+            return render_template('add_goal_scorers.html',user=current_user, match=match, redCardsNum=redCardsNum)
+        
+    # GET - wyświetlanie formularza
+    return render_template(
+        'add_goal_scorers.html',user=current_user, match=match, redCardsNum=redCardsNum)
 
 # Dodawanie zawodnika do bazy
 @admin.route('/new-referee', methods=['GET', 'POST']) 

@@ -12,6 +12,7 @@ def calculate_ranking(tournmanet_id):
 
     # Pobieramy wszystkie mecze należące do turnieju
     matches = Match.query.filter_by(tournament_id=tournament.id).all()
+    
     if not matches:
         raise ValueError("Brak meczów w turnieju.")
 

@@ -1,0 +1,60 @@
+{% extends "base_admin.html" %}
+{% block title %}
+Wprowadź strzelców goli
+{% endblock title %}
+
+{% block content %}
+<h1>Mecz: {{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
+<p>Turniej: {{ match.tournament.name }}</p>
+<p>Wynik meczu: {{ match.scoreHome }} - {{ match.scoreAway }}</p>
+
+<form method="POST">
+    <h2>Dodaj strzelców goli dla drużyny {{ match.home_team.name }}</h2>
+    {% for i in range(match.scoreHome) %}
+    <div class="form-group">
+        <label for="home_scorer_{{ i }}">Strzelec gola {{ i + 1 }}:</label>
+        <select class="form-control" name="home_scorer_{{ i }}" id="home_scorer_{{ i }}" required>
+            <option value="" disabled selected>Wybierz zawodnika</option>
+            {% for player in match.home_team.players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{ player.lastName }}
+            </option>s
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+
+    <h2>Dodaj strzelców goli dla drużyny {{ match.away_team.name }}</h2>
+    {% for i in range(match.scoreAway) %}
+    <div class="form-group">
+        <label for="away_scorer_{{ i }}">Strzelec gola {{ i + 1 }}:</label>
+        <select class="form-control" name="away_scorer_{{ i }}" id="away_scorer_{{ i }}" required>
+            <option value="" disabled selected>Wybierz zawodnika</option>
+            {% for player in match.away_team.players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{ player.lastName }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+
+    <h2>Dodaj czerwone kartki</h2>
+    {% for i in range(redCardsNum) %}
+    <div class="form-group">
+        <label for="red_card_{{ i }}">Czerwona kartka {{ i + 1 }}:</label>
+        <select class="form-control" name="red_card_{{ i }}" id="red_card_{{ i }}" required>
+            <option value="" disabled selected>Wybierz zawodnika</option>
+            {% for player in match.away_team.players + match.home_team.players %}
+            <option value="{{ player.id }}">
+                {{ player.firstName }} {{ player.lastName }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+
+    <br />
+    <button type="submit" class="btn btn-success">Zatwierdź strzelców i zawieszonych</button>
+</form>
+{% endblock content %}
