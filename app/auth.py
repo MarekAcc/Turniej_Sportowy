@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .services.create import create_coach
 from flask_login import login_user, login_required, logout_user, current_user
-from .models import Tournament,Team,Match, Coach
+from .models import Coach
 
 auth = Blueprint('auth', __name__)
 

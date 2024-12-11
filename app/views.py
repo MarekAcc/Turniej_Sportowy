@@ -3,7 +3,6 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from .models import Tournament, Team, Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
-from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
 
@@ -15,16 +14,6 @@ views = Blueprint('views', __name__)
 @views.route('/')
 def home():
     return render_template("home.html", user=current_user)
-
-
-@views.route('/home-admin')
-@login_required
-def home_admin():
-    tournament = Tournament.find_tournament('A Klasa')
-    teams = Tournament.get_teams(tournament.id)
-
-    return render_template("home_admin.html", user=current_user, tournament=tournament, teams=teams)
-
 
 @views.route('/tournaments')
 def tournaments():

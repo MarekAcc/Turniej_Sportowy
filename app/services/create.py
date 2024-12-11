@@ -1,5 +1,3 @@
-# Tutaj dodać wszystkie funkcje do tworzenia instancji Modeli
-# Operacje na modelach dodać jako metody
 from app.models import Player, Tournament, Team, Coach, Match, MatchEvent, Referee
 from app import db
 
@@ -17,7 +15,6 @@ def create_player(firstName, lastName, age):
                         age=int(age), status='active')
     db.session.add(new_player)
     db.session.commit()
-
 
 def create_tournament(name, type, status):
     if len(name) > 100:

@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .models import Tournament,Team,Match, Coach, Player, MatchEvent, Referee
 from . import db
-from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event, create_referee
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
