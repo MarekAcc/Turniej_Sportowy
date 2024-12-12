@@ -569,7 +569,6 @@ class Match(db.Model):
         players_home = homeTeam.players
         players_away = awayTeam.players
         
-        db.session.commit()
         
         for player in players_home:
             if player.position =="field":

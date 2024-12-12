@@ -36,7 +36,6 @@ def tournaments():
 
     return render_template("tournaments.html", tournaments=tournaments, user=current_user)
 
-
 @views.route('/teams')
 def teams():
     query = request.args.get('query')
