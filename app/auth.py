@@ -44,46 +44,40 @@ def sign_up():
     return render_template('sign_up.html', user=current_user, form_data={})
 
 
-from werkzeug.security import check_password_hash
-
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login = request.form.get('login', '').strip()
-        password = request.form.get('password', '').strip()
+        login = request.form.get('login')
+        password = request.form.get('password')
 
         if not login or not password:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template("login.html", user=current_user) 
         
-        # Sprawdzenie czy login istnieje w bazie danych
+        # Sprawdzenie czy login jest prawidłowy
         user = Coach.query.filter_by(login=login).first()
         if not user:
             flash('Nieprawidłowy login!', 'danger')
             return render_template("login.html", user=current_user) 
         
-        # Sprawdzenie hasła (hash zamiast czystego tekstu)
-        if not check_password_hash(user.password, password):
+        if user.password != password:
             flash('Nieprawidłowe hasło!', 'danger')
             return render_template("login.html", user=current_user)
-        
-        # Zalogowanie użytkownika
+         # Zalogowanie Usera tak jakby wewnątrz Flaska
         login_user(user, remember=True)
 
-        # Sprawdzenie, czy użytkownik jest adminem
+        # Jezeli to admin się loguje to ustawiamy flagę, która będzie potem wykorzystywana do uprwanień.
+        # (admin jest po prostu jednym z trenerów o loginie = ADMIN)
         if user.login == 'ADMIN':
             flash('Zalogowałeś się jako ADMIN!', 'success')
             session['is_admin'] = True
             return render_template("home_admin.html", user=current_user)
         else:
             session['is_admin'] = False
-
         flash('Zalogowałeś się pomyślnie!', 'success')
         return render_template("trener_p.html", user=current_user)
-    
-    # Jeśli metoda to GET, wyświetl stronę logowania  
-    return render_template("login.html", user=current_user)
-
+    # Jesli nie jest POSTem czyli jest GETem to wyswietl stronę logowania  
+    return render_template("login.html", user=current_user)    
 
 @auth.route('/logout')
 @login_required

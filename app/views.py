@@ -75,9 +75,6 @@ def home_admin():
     tournament = Tournament.find_tournament('A Klasa')
     teams = Tournament.get_teams(tournament.id)
     return render_template("home_admin.html", user=current_user, tournament=tournament, teams=teams)
-<<<<<<< Updated upstream
-    
-=======
 
 
 @views.route('/tournaments')
@@ -370,7 +367,6 @@ def show_tournament():
 
     return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams, matches_by_round=sorted_matches_by_round)
 
->>>>>>> Stashed changes
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
