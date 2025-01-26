@@ -12,18 +12,17 @@ New referee
     </div>
     <div class="form-group">
         <label for="playerLastName">Nazwisko sędziego</label>
-        <input type="text" class="form-control" id="playerLastName" name="lastName" placeholder="Podaj nazwisko trenera">
+        <input type="text" class="form-control" id="playerLastName" name="lastName"
+            placeholder="Podaj nazwisko trenera">
     </div>
     <div class="form-group">
         <label for="playerAge">Wiek sędziego</label>
-        <select name="age" id="playerAge" class="form-control">
-            {% for i in range(12, 100) %}
-              <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
-          </select>
-        
+        <input type="number" oninput="validity.valid||(value='');" value="20" min="0" max="90" class="form-control"
+            name="age" id="refereeAge" required>
+        </select>
+
     </div>
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
 </form>
 {% endblock %}

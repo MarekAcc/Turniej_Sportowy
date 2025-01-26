@@ -140,12 +140,13 @@ def referees():
         referees = Referee.get_refs()
     return render_template("referees.html", referees=referees, user=current_user)
 
+
 @views.route('/referee/<int:referee_id>')
 def referee_details(referee_id):
     referee = Referee.query.get(referee_id)
     matches = Match.query.filter(Match.referee_id == referee_id)
-    
-    return render_template("referee_details.html", referee=referee, user=current_user, matches = matches)
+
+    return render_template("referee_details.html", referee=referee, user=current_user, matches=matches)
 
 # detale dla stron --------------------------------------------------------------------------------------------------------
 
@@ -359,6 +360,7 @@ def teams_to_tournament_adder():
 @login_required
 def choose_tournament_to_manage():
     all_tournaments = Tournament.query.all()
+
     if request.method == 'POST':
         tournament_id = request.form.get('tournament_id')
         return redirect(url_for('views.manage_tournament', tournament_id=tournament_id))
@@ -534,7 +536,9 @@ def match_adder():
 @views.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
 def choose_match_to_manage():
+
     all_matches = Match.query.all()
+
     if request.method == 'POST':
         match_id = request.form.get('match_id')
         return redirect(url_for('views.manage_match', match_id=match_id))
@@ -549,6 +553,7 @@ def manage_match():
     match = Match.find_match_by_id(match_id)
 
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
+
     homeTeam = Team.find_team_by_id(match.homeTeam_id)
     awayTeam = Team.find_team_by_id(match.awayTeam_id)
 
@@ -579,13 +584,12 @@ def manage_match():
             else:
                 home_team.score += 1  # Remis
                 away_team.score += 1  # Remis
-                print('dupa3')
-        print('2')
+
         db.session.commit()
         flash('Dodano wynik meczu!', 'success')
         return redirect(url_for('views.home_admin'))
 
-    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam, awayTeam=awayTeam)
+    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam, awayTeam=awayTeam, user=current_user)
 
 
 @views.route('/match-event-adder', methods=['GET', 'POST'])

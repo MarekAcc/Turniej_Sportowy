@@ -9,6 +9,7 @@
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
     crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   <title>{% block title %}Home{% endblock %}</title>
 </head>
 
@@ -20,12 +21,12 @@
     <div class="collapse navbar-collapse" id="navbar">
       <div class="navbar-nav">
         <a class="nav-item nav-link" id="home" href="/admin/home-admin">Home</a>
-        <a class="nav-item nav-link" id="home" href="/admin/team-adder">Team adder</a>
-        <a class="nav-item nav-link" id="home" href="/admin/create-tournament">Tournament adder</a>
-        <a class="nav-item nav-link" id="home" href="/admin/new-player">Player adder</a>
-        <a class="nav-item nav-link" id="home" href="/admin/new-referee">Referee adder</a>
+        <!-- <a class="nav-item nav-link" id="home" href="/admin/team-adder">Team adder</a> -->
+        <!-- <a class="nav-item nav-link" id="home" href="/admin/create-tournament">Tournament adder</a> -->
+        <!-- <a class="nav-item nav-link" id="home" href="/admin/new-player">Player adder</a> -->
+        <!-- <a class="nav-item nav-link" id="home" href="/admin/new-referee">Referee adder</a> -->
         <a class="nav-item nav-link" id="home" href="/admin/choose-match-to-manage">Match manage</a>
-        <a class="nav-item nav-link" id="home" href="/admin//match-event-adder">MatchEvent adder</a>
+        <a class="nav-item nav-link" id="home" href="/admin//match-event-adder">MatchEvent manage</a>
         <a class="nav-item nav-link" id="home" href="/admin/choose-tournament-to-manage">Tournament manage</a>
         <a class="nav-item nav-link" id="home" href="/admin/delete-player">Delete Player</a>
         <a class="nav-item nav-link" id="home" href="/admin/delete-team">Delete Team</a>
