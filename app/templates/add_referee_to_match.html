@@ -1,0 +1,24 @@
+{%extends "base_admin.html"%}
+{%block title%}
+Add referee to match
+{%endblock title%}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Wybierz sędziego</h3>
+    <div class="form-group">
+        <label for="name">sędzia</label>
+        <select class="form-control" name="referee_id" id="referee_id" required>
+            <option value="" disabled selected>Wybierz sędziego</option>
+            {% for referee in referees %}
+            <option value="{{ referee.id }}">
+                {{ referee.firstName }} {{ referee.lastName }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+{% endblock content %}

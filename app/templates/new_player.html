@@ -8,22 +8,21 @@ New player
     <h3 align="center">Dodaj nowego zawodnika</h3>
     <div class="form-group">
         <label for="playerFirstName">Imię zawodnika</label>
-        <input type="text" class="form-control" id="playerFirstName" name="firstName" placeholder="Podaj imię zawodnika">
+        <input type="text" class="form-control" id="playerFirstName" name="firstName"
+            placeholder="Podaj imię zawodnika">
     </div>
     <div class="form-group">
         <label for="playerLastName">Nazwisko zawodnika</label>
-        <input type="text" class="form-control" id="playerLastName" name="lastName" placeholder="Podaj nazwisko zawodnika">
+        <input type="text" class="form-control" id="playerLastName" name="lastName"
+            placeholder="Podaj nazwisko zawodnika">
     </div>
     <div class="form-group">
         <label for="playerAge">Wiek zawodnika</label>
-        <select name="age" id="playerAge" class="form-control">
-            {% for i in range(12, 100) %}
-              <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
-          </select>
-        
+        <input type="number" oninput="validity.valid||(value='');" value="12" min="0" max="90" class="form-control"
+            name="age" id="playerAge" required>
+
     </div>
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
 </form>
 {% endblock %}

@@ -18,15 +18,14 @@ New Coach(User)
         <label for="playerAge">Wiek</label>
         <select name="age" id="playerAge" class="form-control">
             {% for i in range(18, 100) %}
-<<<<<<< Updated upstream
-              <option value="{{ i }}">{{ i }}</option>
+
 =======
             <option value="{{ i }}" {% if form_data.get('age') == i|string %}selected{% endif %}>
                 {{ i }}
             </option>
->>>>>>> Stashed changes
+
             {% endfor %}
-          </select>
+        </select>
     </div>
     <div class="form-group">
         <label for="coachLogin">Login</label>
@@ -34,11 +33,11 @@ New Coach(User)
     </div>
     <div class="form-group">
         <label for="coachPass1">Hasło</label>
-        <input type="text" class="form-control" id="coachPass1" name="password1" placeholder="Hasło">
+        <input type="password" class="form-control" id="coachPass1" name="password1" placeholder="Hasło">
     </div>
     <div class="form-group">
         <label for="coachPass1">Powtórz hasło</label>
-        <input type="text" class="form-control" id="coachPass2" name="password2" placeholder="Powtórz hasło">
+        <input type="password" class="form-control" id="coachPass2" name="password2" placeholder="Powtórz hasło">
     </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>

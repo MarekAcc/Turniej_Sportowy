@@ -4,6 +4,11 @@
 
 {% block content %}
 <h3>Strona główna - zarządzaj zawodnikami</h3>
+<<<<<<< HEAD
+=======
+<h2>TRENER - {{current_user.firstName}} {{current_user.lastName}}</h2>
+<h2>Drużyna: {{current_user.team.name}}</h2>
+>>>>>>> Mati
 <div class="menu">
     <button onclick="window.location.href='{{ url_for('views.swap_players') }}'">Wymień zawodnika</button>
     <button onclick="window.location.href='{{ url_for('views.change_positions') }}'">Zmień ustawienie</button>

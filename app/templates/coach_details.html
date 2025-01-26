@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+Szczegóły Trenera
+{% endblock %}
+
+{% block content %}
+<h1>Szczegóły Trenera</h1>
+
+<p><strong>Imię i nazwisko:</strong> {{ coach.firstName }} {{ coach.lastName }}</p>
+<p><strong>Wiek:</strong> {{ coach.age if coach.age else 'Nieznany' }}</p>
+
+{% if team %}
+<p><strong>Drużyna:</strong>
+    <a href="{{ url_for('views.team_details', team_id=team.id) }}">
+        {{ team.name }}
+    </a>
+</p>
+{% else %}
+<p><strong>Drużyna:</strong> Brak przypisanej drużyny</p>
+{% endif %}
+
+<a href="{{ url_for('views.coaches') }}">Powrót do listy trenerów</a>
+{% endblock %}

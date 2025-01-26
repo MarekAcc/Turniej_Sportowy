@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 {% extends "base_admin.html" %}
+=======
+{% extends "base.html" %}
+>>>>>>> Mati
 
 {% block title %}
 Swap Players
@@ -13,7 +17,11 @@ Swap Players
         <select class="form-control" id="player_id" name="player_id">
             <option value="" disabled selected>Zawodnik</option>
             {% for player in players %}
+<<<<<<< HEAD
             <option value="{{ player.id }}">{{ player.firstName }}  {{ player.lastName }} ({{player.team_id}})</option>
+=======
+            <option value="{{ player.id }}">{{ player.firstName }} {{ player.lastName }} ({{player.team_id}})</option>
+>>>>>>> Mati
             {% endfor %}
         </select>
     </div>
@@ -28,6 +36,13 @@ Swap Players
     </div>
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>
+<<<<<<< HEAD
 </form>
 
 {% endblock %}
+=======
+
+</form>
+<a href="{{ url_for('views.coach_home') }}">Powrót do strony głównej coacha</a>
+{% endblock %}
+>>>>>>> Mati

@@ -29,9 +29,9 @@ Admin page
 {% elif tournament.type == 'playoff' %}
 <h2>Drabinka turniejowa</h2>
 <div class="bracket">
-    {% for round, matches in playoff_bracket.items() %}
+    {% for round_number, matches in matches_by_round.items() %}
     <div class="round">
-        <h3>Runda {{ round }}</h3>
+        <h3>Runda {{ round_number }}</h3>
         <ul class="match-list">
             {% for match in matches %}
             <li class="match">
@@ -49,4 +49,5 @@ Admin page
 {% else %}
 <p>Nieznany typ turnieju.</p>
 {% endif %}
+
 {% endblock content %}

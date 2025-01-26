@@ -1,0 +1,67 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+{{ referee.firstName }}{{referee.lastName}} - Szczegóły
+{% endblock %}
+
+{% block content %}
+<h1>{{ referee.firstName }} {{referee.lastName}}</h1>
+
+<h2>Mecze</h2>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    table thead tr {
+        background-color: #000202;
+        color: #ffffff;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    table th,
+    table td {
+        border: 1px solid #dddddd;
+        padding: 12px 15px;
+    }
+
+    table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    table tbody tr:last-of-type {
+        border-bottom: 2px solid #000202;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+<div class="list-group">
+    {% for match in matches %}
+    <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
+        </div>
+        <p class="mb-1 text-center">
+            <strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong>
+        </p>
+    </a>
+    {% else %}
+    <div class="list-group-item">
+        <p class="mb-0 text-muted text-center">Brak meczy</p>
+    </div>
+    {% endfor %}
+</div>
+<a href="{{ url_for('views.referees') }}">Powrót do sędziów</a>
+{% endblock %}

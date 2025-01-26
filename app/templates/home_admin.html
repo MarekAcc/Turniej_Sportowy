@@ -1,7 +1,15 @@
 {%extends "base_admin.html"%}
-{%block title%}
-Admin page
-{%endblock title%}
+{% block title %}
+Admin Page
+{% endblock title %}
+
 {% block content %}
-HOME ADMIN
+<h2>HOME PAGE FOR ADMIN</h2>
+
+<div class="nav-container">
+    <a class="nav-item admin-link" href="/admin/new-player">Dodaj zawodnika</a>
+    <a class="nav-item admin-link" href="/admin/team-adder">Dodaj nową drużynę</a>
+    <a class="nav-item admin-link" href="/admin/new-referee">Dodaj sędziego</a>
+    <a class="nav-item admin-link" href="/admin/create-tournament">Rozpocznij turniej</a>
+</div>
 {% endblock content %}

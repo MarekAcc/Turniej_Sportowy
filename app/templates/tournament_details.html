@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ tournament.name }} - Szczegóły
+{% endblock %}
+
+{% block content %}
+<h1>{{ tournament.name }}</h1>
+
+{% if tournament.type == 'league' %}
+<!-- Tabela ligowa -->
+<h2>Tabela Ligowa</h2>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    table thead tr {
+        background-color: #000202;
+        color: #ffffff;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    table th,
+    table td {
+        border: 1px solid #dddddd;
+        padding: 12px 15px;
+    }
+
+    table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    table tbody tr:last-of-type {
+        border-bottom: 2px solid #000202;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>Drużyna</th>
+            <th>Wyniki</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team, points in ranking.items(): %}
+        <tr>
+            <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
+            <td> {{ points }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">Brak wyników</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% if tournament.type == 'playoff' %}
+<h2>Drabinka (Playoff)</h2>
+<style>
+    .tournament-bracket {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin: 20px;
+    }
+
+    .round {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .round h3 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .round ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .round li {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+    }
+</style>
+<div class="tournament-bracket">
+    {% for round_number, matches_in_round in rounds.items() %}
+    <div class="round">
+        <h3>Runda {{ round_number }}</h3>
+        <ul>
+            {% for match in matches_in_round %}
+            <li>
+                <span>{{ match.home_team.name }}</span>
+                <span>{{ match.scoreHome if match.scoreHome is not none else "-" }} : {{ match.scoreAway if
+                    match.scoreAway is not none else "-" }}</span>
+                <span>{{ match.away_team.name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<!-- Mecze -->
+<h2 class="mt-4">Mecze</h2>
+<div class="list-group">
+    {% for match in matches %}
+    <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
+        </div>
+        <p class="mb-1 text-center">
+            <strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong>
+        </p>
+    </a>
+    {% else %}
+    <div class="list-group-item">
+        <p class="mb-0 text-muted text-center">Brak meczy</p>
+    </div>
+    {% endfor %}
+</div>
+
+<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+{% endblock %}

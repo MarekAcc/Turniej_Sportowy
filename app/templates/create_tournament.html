@@ -4,11 +4,13 @@
 Create tournament
 {% endblock %}
 {% block content %}
+
 <form method="POST">
     <h3 align="center">Utwórz nowy turniej</h3>
     <div class="form-group">
         <label for="name">Nazwa turnieju</label>
-        <input type="text" class="form-control" id="tournamentName" name="tournamentName" placeholder="Podaj nazwę turnieju">
+        <input type="text" class="form-control" id="tournamentName" name="tournamentName"
+            placeholder="Podaj nazwę turnieju">
     </div>
     <div class="form-group">
         <label for="type">Format turnieju</label>
@@ -19,9 +21,11 @@ Create tournament
     </div>
     <div class="form-group">
         <label for="numTeams">Liczba Drużyn</label>
-        <input type="number" class="form-control" name="numTeams" id="numTeams" required>
+        <input type="number" oninput="validity.valid||(value='');" value="2" min="2" max="90" class="form-control"
+            name="numTeams" id="numTeams" required>
+        </select>
     </div>
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
 </form>
 {% endblock %}

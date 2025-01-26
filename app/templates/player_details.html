@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+Szczegóły Zawodnika
+{% endblock %}
+
+{% block content %}
+<h1>{{ player.firstName }} {{ player.lastName }}</h1>
+<p><strong>Wiek:</strong> {{ player.age }}</p>
+<p><strong>Gole:</strong> {{ player.goals }}</p>
+<p><strong>Wystąpienia:</strong> {{ player.appearances }}</p>
+<p><strong>Drużyna:</strong>
+    {% if team %}
+    <a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a>
+    {% else %}
+    Brak drużyny
+    {% endif %}
+</p>
+
+<h2>Wydarzenia Meczu</h2>
+<ul>
+    {% for event in match_events %}
+    <li>{{ event.eventType }} - {{ event.description }} (Mecz: <a
+            href="{{ url_for('views.match_details', match_id=event.match.id) }}">{{ event.match.home_team.name }} vs {{
+            event.match.away_team.name }}</a>)</li>
+    {% else %}
+    <li>Brak wydarzeń</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('views.players') }}">Powrót do zawodników</a>
+{% endblock %}

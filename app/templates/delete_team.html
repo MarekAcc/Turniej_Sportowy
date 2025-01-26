@@ -1,0 +1,23 @@
+{%extends "base_admin.html"%}
+{%block title%}
+Delete team
+{%endblock title%}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Wybierz druzyne</h3>
+    <div class="form-group">
+        <label for="matches">Choose a team:</label>
+        <select name="team_id" id="team_id">
+            {% for team in teams %}
+            <option value="{{ team.id }}">
+                {{ team.name }} ({{ team.tournament.name }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-danger">Wyrejestruj druzyne(Usuń)</button>
+</form>
+
+{% endblock content %}
