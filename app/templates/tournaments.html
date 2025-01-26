@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+Turnieje
+{% endblock %}
+
+{% block content %}
+<h1>Turnieje</h1>
+
+<form method="get" action="{{ url_for('views.tournaments') }}">
+    <input type="text" name="query" placeholder="Wyszukaj turnieje..." value="{{ request.args.get('query', '') }}">
+    <button type="submit">Szukaj</button>
+</form>
+
+<ul>
+    {% for tournament in tournaments %}
+    <a href="{{ url_for('views.tournament_details', tournament_id=tournament.id) }}">
+    <li>{{ tournament.name }}</li>
+    </a>
+    {% else %}
+    <li>Brak wyników</li>
+    {% endfor %}
+
+</ul>
+
+<a href="{{ url_for('views.home') }}">Powrót do strony głównej</a>
+{% endblock %}

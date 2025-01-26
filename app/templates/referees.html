@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+Sędziowie
+{% endblock %}
+
+{% block content %}
+<h1>Sędziowie</h1>
+
+<form method="get" action="{{ url_for('views.referees') }}">
+    <input type="text" name="query" placeholder="Wyszukaj sędziego..." value="{{ request.args.get('query', '') }}">
+    <button type="submit">Szukaj</button>
+</form>
+
+<ul>
+    {% for referee in referees %}
+    <a href="{{ url_for('views.referee_details', referee_id=referee.id) }}">
+    <li>{{ referee.firstName }} {{ referee.lastName }}</li>
+    </a>
+    {% else %}
+    <li>Brak wyników</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('views.home') }}">Powrót do strony głównej</a>
+{% endblock %}

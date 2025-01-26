@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+Zawodnicy
+{% endblock %}
+
+{% block content %}
+<h1>Zawodnicy</h1>
+
+<form method="get" action="{{ url_for('views.players') }}">
+    <input type="text" name="query" placeholder="Wyszukaj zawodników (np. Jan Kowalski)"
+        value="{{ request.args.get('query', '') }}">
+    <button type="submit">Szukaj</button>
+</form>
+
+{% if message %}
+<p style="color: red;">{{ message }}</p>
+{% endif %}
+
+<ul>
+    {% for player in players %}
+    <a href="{{ url_for('views.player_details', player_id=player.id) }}">
+    <li>
+        {{ player.firstName }} {{ player.lastName }} Wiek: {{ player.age }}, Pozycja: {{ player.position }}, Status: {{ player.status }}
+    </li>
+    </a>
+    {% else %}
+    <li>Brak wyników</li>
+    {% endfor %}
+</ul>
+
+<a href="{{ url_for('views.home') }}">Powrót do strony głównej</a>
+{% endblock %}

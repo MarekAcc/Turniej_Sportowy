@@ -1,0 +1,148 @@
+.menu button {
+    display: inline-block;
+    background-color: #2428a2;
+
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    margin: 15px 0;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-color: #fafaff;
+}
+
+.menu button:hover {
+    background-color: #e9e8ee;
+    color: #2428a2;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    border-color: #2428a2;
+}
+
+
+.menu button:active {
+    background-color: #ffffff;
+    transform: translateY(2px);
+}
+
+.admin-link {
+    display: inline-block;
+    background-color: #2428a2;
+
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    margin: 15px 0;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+
+.admin-link:hover {
+    background-color: #e9e8ee;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.admin-link:active {
+    background-color: #ffffff;
+    transform: translateY(2px);
+}
+
+.btn-primary {
+    display: inline-block;
+    background-color: #2428a2;
+
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    margin: 15px 0;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-color: #fafaff;
+}
+
+.btn-primary:hover {
+    background-color: #e9e8ee;
+    color: #2428a2;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    border-color: #2428a2;
+}
+
+
+.btn-primary:active {
+    background-color: #ffffff;
+    transform: translateY(2px);
+}
+.menu li {
+    list-style-type: none; /* Usunięcie domyślnego stylu listy */
+    padding: 10px 15px;
+    margin: 8px 0;
+    background-color: #1E3E62;
+    border: 1px solid #0B192C;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #FF6500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.menu li:hover {
+    background-color: #1E3E63;
+    color: #FF6500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.menu li:active {
+    background-color: #FF6500;
+    transform: translateY(2px);
+}
+ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    display: block; /* Sprawia, że link obejmuje cały element */
+    color: #FF6500; /* Używa koloru tekstu rodzica (li) */
+    text-decoration: none; /* Usuwa podkreślenie */
+    font-weight: bold; /* Opcjonalne: wyróżnienie linku */
+}
+ul a:hover {
+    color: #333; /* Zmienia kolor linku na hover */
+    text-decoration: none; /* Nadal brak podkreślenia */
+    background-color: #8E1616; /* Opcjonalne: tło na hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Opcjonalny cień */
+}
+
+a {
+    color : #FF6500;
+    text-decoration: none;
+}
+a:hover{
+    color : #a04324;
+    text-decoration: none;
+}
+li {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #1E3E62;
+    border: 1px solid #0B192C;
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+li:hover {
+    background-color: #e9ecef;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

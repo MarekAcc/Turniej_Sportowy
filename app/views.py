@@ -75,7 +75,302 @@ def home_admin():
     tournament = Tournament.find_tournament('A Klasa')
     teams = Tournament.get_teams(tournament.id)
     return render_template("home_admin.html", user=current_user, tournament=tournament, teams=teams)
+<<<<<<< Updated upstream
     
+=======
+
+
+@views.route('/tournaments')
+def tournaments():
+    query = request.args.get('query')
+
+    # Jeśli zapytanie jest obecne, filtrujemy turnieje
+    if query:
+        try:
+            # Pobieramy wszystkie turnieje
+            all_tournaments = Tournament.get_tournaments()
+            
+            # Filtrujemy turnieje zaczynające się na podany ciąg znaków (case-insensitive)
+            tournaments = [tournament for tournament in all_tournaments if tournament.name.lower().startswith(query.lower())]
+            
+            # Jeśli lista turniejów jest pusta, wyświetlamy komunikat
+            if not tournaments:
+                flash("Nie znaleziono turniejów pasujących do zapytania.", "warning")
+        except ValueError as e:
+            # Obsługa błędów, np. problem z bazą danych
+            flash(str(e), "danger")
+            tournaments = []
+    else:
+        # Jeśli brak zapytania, pobieramy wszystkie turnieje
+        tournaments = Tournament.get_tournaments()
+
+    return render_template("tournaments.html", tournaments=tournaments, user=current_user)
+
+
+
+@views.route('/teams')
+def teams():
+    query = request.args.get('query')
+
+    # Jeśli zapytanie jest obecne, filtrujemy drużyny
+    if query:
+        try:
+            # Pobieramy wszystkie drużyny
+            all_teams = Team.get_teams()
+            
+            # Filtrujemy drużyny zaczynające się na podany ciąg znaków (case-insensitive)
+            teams = [team for team in all_teams if team.name.lower().startswith(query.lower())]
+            
+            # Jeśli lista drużyn jest pusta, wyświetlamy komunikat
+            if not teams:
+                flash("Nie znaleziono drużyn pasujących do zapytania.", "warning")
+        except ValueError as e:
+            # Obsługa błędów, np. problem z bazą danych
+            flash(str(e), "danger")
+            teams = []
+    else:
+        # Jeśli brak zapytania, pobieramy wszystkie drużyny
+        teams = Team.get_teams()
+
+    return render_template("teams.html", teams=teams, user=current_user)
+
+
+@views.route('/players')
+def players():
+    query = request.args.get('query')
+
+    if query:
+        # Rozdzielamy query na imię i nazwisko, jeśli wpisano pełne imię i nazwisko
+        parts = query.split(' ', 1)
+        if len(parts) == 2:  # Jeśli podano dwa słowa
+            first_name, last_name = parts
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{first_name}%")) &
+                (Player.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:  # Jeśli podano jedno słowo, szukamy po imieniu lub nazwisku
+            players = Player.query.filter(
+                (Player.firstName.ilike(f"%{query}%")) |
+                (Player.lastName.ilike(f"%{query}%"))
+            ).all()
+
+        message = None if players else "Nie znaleziono zawodników"
+    else:
+        players = Player.query.all()
+        message = None
+
+    return render_template("players.html", players=players, message=message, user=current_user)
+
+
+@views.route('/coaches')
+def coaches():
+    query = request.args.get('query')
+
+    if query:
+        # Szukamy trenera po pełnym imieniu i nazwisku lub częściowym
+        parts = query.split(' ', 1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{first_name}%")) &
+                (Coach.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:
+            coaches = Coach.query.filter(
+                (Coach.firstName.ilike(f"%{query}%")) |
+                (Coach.lastName.ilike(f"%{query}%"))
+            ).all()
+    else:
+        coaches = Coach.query.all()
+
+    return render_template("coaches.html", coaches=coaches, user=current_user)
+
+
+@views.route('/referees')
+def referees():
+    query = request.args.get('query')
+
+    if query:
+        try:
+            parts = query.split(' ', 1)
+            if len(parts) == 2:
+                first_name, last_name = parts
+                refs = Referee.query.filter(
+                    (Referee.firstName.ilike(f"%{first_name}%")) &
+                    (Referee.lastName.ilike(f"%{last_name}%"))
+                ).all()
+            else:
+                refs = Referee.query.filter(
+                    (Referee.firstName.ilike(f"%{query}%")) |
+                    (Referee.lastName.ilike(f"%{query}%"))
+                ).all()
+        except ValueError as e:
+            flash("Błąd w przetwarzaniu zapytania: " + str(e), 'danger')
+            referees = []
+    else:
+        referees = Referee.query.all()
+    return render_template("referees.html", referees=referees, user=current_user)
+
+
+@views.route('/referee/<int:referee_id>')
+def referee_details(referee_id):
+    referee = Referee.query.get(referee_id)
+    matches = Match.query.filter(Match.referee_id == referee_id)
+
+    return render_template("referee_details.html", referee=referee, user=current_user, matches=matches)
+
+# detale dla stron --------------------------------------------------------------------------------------------------------
+
+
+@views.route('/tournament/<int:tournament_id>')
+def tournament_details(tournament_id):
+    tournament = Tournament.query.get(tournament_id)
+
+    # Jeśli turniej nie istnieje, przekieruj z komunikatem
+    if not tournament:
+        flash("Turniej nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    ranking = None
+    rounds = None
+    matches = []
+
+    # Logika dla turniejów ligowych
+    if tournament.type == 'league':
+        try:
+            # Obliczanie rankingu, obsługa wyjątku w przypadku braku meczów
+            ranking = calculate_ranking(tournament_id)
+        except ValueError as e:
+            flash(str(e), "warning")  # Wyświetlenie komunikatu o błędzie
+            ranking = {}
+
+    # Logika dla turniejów typu playoff
+    elif tournament.type == 'playoff':
+        matches = Match.query.filter_by(tournament_id=tournament_id).all()
+        if matches:
+            # Grupujemy mecze według rundy
+            rounds = {r: [m for m in matches if m.round == r]
+                      for r in range(1, tournament.round + 1)}
+        else:
+            flash("Brak meczów w turnieju.", "warning")
+            rounds = {}
+
+    # Pobieramy wszystkie mecze
+    matches = Match.query.filter(Match.tournament_id == tournament_id).all()
+
+    return render_template(
+        "tournament_details.html",
+        tournament=tournament,
+        ranking=ranking,
+        matches=matches,
+        rounds=rounds,
+        user=current_user
+    )
+
+
+
+@views.route('/team/<int:team_id>')
+def team_details(team_id):
+    # Pobieramy drużynę na podstawie ID
+    team = Team.query.get(team_id)
+
+    if not team:
+        flash("Drużyna nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    # Pobieramy trenera drużyny
+    coach = team.teamCoach
+
+    # Pobieramy zawodników drużyny
+    players = team.players
+
+    # Pobieramy mecze drużyny (zarówno jako gospodarze, jak i goście)
+    matches = team.home_matches + team.away_matches
+
+    return render_template(
+        "team_details.html",
+        team=team,
+        coach=coach,
+        players=players,
+        matches=matches,
+        user=current_user
+    )
+
+
+@views.route('/match/<int:match_id>')
+def match_details(match_id):
+    match = Match.query.get(match_id)
+
+    if not match:
+        flash("Mecz nie istnieje", "danger")
+        return redirect(url_for('views.tournaments'))
+
+    # Pobieramy wydarzenia związane z meczem
+    match_events = MatchEvent.query.filter_by(match_id=match_id).all()
+
+    return render_template("match_details.html", match=match, match_events=match_events, user=current_user)
+
+
+@views.route('/player/<int:player_id>')
+def player_details(player_id):
+    # Pobieramy zawodnika na podstawie ID
+    player = Player.query.get(player_id)
+
+    if not player:
+        flash("Zawodnik nie istnieje", "danger")
+        return redirect(url_for('views.players'))
+
+    # Pobieramy drużynę zawodnika
+    team = player.team
+
+    # Pobieramy MatchEventy zawodnika
+    match_events = player.playerEvents
+
+    return render_template(
+        "player_details.html",
+        player=player,
+        team=team,
+        match_events=match_events,
+        user=current_user
+    )
+
+
+@views.route('/coach/<int:coach_id>')
+def coach_details(coach_id):
+    coach = Coach.query.get(coach_id)
+
+    if not coach:
+        flash("Trener nie istnieje", "danger")
+        return redirect(url_for('views.coaches'))
+
+    team = coach.team  # Relacja z modelem `Team`
+
+    return render_template(
+        "coach_details.html",
+        coach=coach,
+        team=team,
+        user=current_user
+    )
+
+# FUNCJONALNOŚĆ TWORZENIA ---------------------------------------------------------------------------------------------------------------------
+
+
+@views.route('/show-tournament', methods=['GET', 'POST'])
+@login_required
+def show_tournament():
+    tournament = Tournament.find_tournament_by_id(30)
+    teams = Tournament.get_teams(tournament.id)
+    # Grupowanie meczów według rund
+    matches_by_round = defaultdict(list)
+    for match in tournament.matches:
+        matches_by_round[match.round].append(match)
+
+    # Sortowanie rund
+    sorted_matches_by_round = dict(sorted(matches_by_round.items()))
+
+    return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams, matches_by_round=sorted_matches_by_round)
+
+>>>>>>> Stashed changes
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
