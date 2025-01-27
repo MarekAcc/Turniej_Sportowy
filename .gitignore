@@ -4,3 +4,5 @@ notes.txt
 /app/.DS_Store
 .DS_Store
 /app/services/__pycache__
+__pycache__/
+app/__pycache__/
