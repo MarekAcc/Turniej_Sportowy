@@ -1,91 +1,93 @@
 # Tutaj dodać wszystkie funkcje do tworzenia instancji Modeli
 # Operacje na modelach dodać jako metody
-from app.models import Player, Tournament, Team, Coach, Match,MatchEvent
+from app.models import Player, Tournament, Team, Coach, Match, MatchEvent, Referee
 from app import db
 
+
+# Funkcja dodawania zawodnika do bazy
 def create_player(firstName, lastName, age):
-    if len(firstName) > 50:
+    if len(firstName) > 50 or len(firstName) < 1:
         raise ValueError('Imię jest za długie!')
-    if len(lastName) > 50:
+    if len(lastName) > 50 or len(lastName) < 1:
         raise ValueError('Nazwisko jest za długie!')
     if int(age) < 12 or int(age) > 99:
         raise ValueError('Nieprawidłowy wiek!')
 
-    new_player = Player(firstName=firstName, lastName=lastName, age=int(age), status='active')
+    new_player = Player(firstName=firstName, lastName=lastName,
+                        age=int(age), status='active')
     db.session.add(new_player)
     db.session.commit()
 
-    # tutaj pozmieniać to co będzie sprawdzanie przy frontendzie a co przy backendzie
+
 def create_tournament(name, type, status):
     if len(name) > 100:
         raise ValueError('Nazwa turnieju jest za długa!')
-    
+
     if Tournament.query.filter_by(name=name).first():
         raise ValueError(f"Turniej o nazwie '{name}' już istnieje!")
-        
+
     if type == 'Liga':
         type = 'league'
+        round = None
     elif type == 'Turniej pucharowy':
         type = 'playoff'
+        round = 1
     else:
         raise ValueError('Błąd formatu!')
-    
 
-    if status == 'Aktywny':
-        status = 'active'
-    elif status == 'Zakończony':
-        status = 'ended'
-    elif status == 'Anulowany':
-        status = 'canceled'
-    elif status == 'planned':
-        status = 'planned'
-    else:
-        raise ValueError('Błąd statusu!')
-    
-    new_tournament = Tournament(name=name, type=type, status=status)
+    new_tournament = Tournament(name=name, type=type, status=status, round=round)
     db.session.add(new_tournament)
     db.session.commit()
     return new_tournament
 
-def create_team(name, players):
+
+def create_team(name, players, coach):
     if len(name) > 100 or len(name) < 4:
         raise ValueError('Nazwa druzyny jest nieprawidlowej dlugosci!')
 
     if Team.query.filter_by(name=name).first():
         raise ValueError(f"Druzyna o nazwie '{name}' już istnieje!")
-    
+
     new_team = Team(name=name)
     db.session.add(new_team)
     db.session.commit()
 
     for p in players:
         if p.team_id != None:
-            raise ValueError(f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
+            raise ValueError(
+                f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
         p.team_id = new_team.id
-        
+
+    coach.team_id = new_team.id
+
     db.session.commit()
+
 
 def create_coach(firstName, lastName, age, login, password1, password2):
     if len(firstName) > 50:
         raise ValueError('Imię jest za długie!')
-    
+
     if len(lastName) > 50:
         raise ValueError('Nazwisko jest za długie!')
-    
+
     if len(login) < 4 or len(login) > 30:
-        raise ValueError('Login jest nieprawdłowej długości! min. 4 znaki max. 30')
-    
+        raise ValueError(
+            'Login jest nieprawdłowej długości! min. 4 znaki max. 30')
+
     if Coach.query.filter_by(login=login).first():
-        raise ValueError(f"Uzytkownik '{login}' juz istnieje! Wybierz inny login.")
-    
+        raise ValueError(
+            f"Uzytkownik '{login}' juz istnieje! Wybierz inny login.")
+
     if len(password1) < 4 or len(password1) > 50:
-        raise ValueError('Hasło jest nieprawdłowej długości! min. 4 znaki max. 50')
-    
+        raise ValueError(
+            'Hasło jest nieprawdłowej długości! min. 4 znaki max. 50')
+
     # Wrzucic do walidacji formularza (poza tą funkcją)
-    if password1 != password2 :
+    if password1 != password2:
         raise ValueError('Hasła nie są takie same!')
-    
-    new_coach = Coach(firstName=firstName, lastName=lastName, age=age, login=login, password = password1)
+
+    new_coach = Coach(firstName=firstName, lastName=lastName,
+                      age=age, login=login, password=password1)
     db.session.add(new_coach)
     db.session.commit()
     return new_coach
@@ -114,23 +116,96 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
         status=status,
         tournament_id=tournament_id
     )
+    '''Dodać do aktualizuj status meczu'''
+    players_home = home_team.players
+    players_away = away_team.players
+    for player in players_home:
+        if player.position =="field":
+            player.appearances+=1
+        if player.status == "suspended":
+            player.status == "active"
+    for player in players_away:
+        if player.position == "field":
+            player.appearances+=1 
+        if player.status == "suspended":
+            player.status == "active"
 
     # Zapis do bazy danych
     db.session.add(new_match)
     db.session.commit()
 
     return new_match
+
 def create_match_event(eventType, match_id, player_id):
+
+    match = Match.query.get(match_id)
+    if not match:
+        raise ValueError(f"Mecz o ID {match_id} nie istnieje.")
+    
+    # Pobranie turnieju
+    tournament = match.tournament
+    if not tournament:
+        raise ValueError(f"Turniej dla meczu o ID {match_id} nie istnieje.")
+
+    # Zabezpieczenie przed dodawaniem wydarzeń, jeśli wygenerowano kolejną rundę
+    if tournament.round > match.round:
+        raise ValueError(
+            "Nie można dodawać wydarzeń do meczu, ponieważ następna runda turnieju została już wygenerowana."
+        )
     
     
+    # Sprawdzenie, czy można dodać kolejny gol
+    if eventType == "goal":
+        # Zliczanie istniejących wydarzeń typu "goal" w meczu
+        current_home_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.home_team.players]
+        ])
+        current_away_goals = len([
+            event for event in match.matchEvents 
+            if event.eventType == "goal" and event.player_id in [player.id for player in match.away_team.players]
+        ])
+
+        # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
+        print(current_home_goals, current_away_goals)
+        print(match.scoreHome,match.scoreAway)
+        if (current_home_goals == match.scoreHome and current_away_goals == match.scoreAway):
+            raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
+
+
+             
+
     new_match_event = MatchEvent(
-    eventType = eventType,
-    match_id = match_id,
-    player_id = player_id
+        eventType=eventType,
+        match_id=match_id,
+        player_id=player_id
     )
+
+    player = Player.query.get(player_id)
+    if not player:
+        raise ValueError(f"Zawodnik o ID {player_id} nie istnieje.")
     
+    if eventType == "goal":
+        player.goals+=1
+    elif eventType == "redCard":
+        player.status = "suspended"
     
+        
+
     db.session.add(new_match_event)
     db.session.commit()
-    
+
     return new_match_event
+
+def create_referee(firstName, lastName, age):
+    if len(firstName) > 50 or len(firstName) < 1:
+        raise ValueError('Imię jest za długie!')
+    if len(lastName) > 50 or len(lastName) < 1:
+        raise ValueError('Nazwisko jest za długie!')
+    if int(age) < 12 or int(age) > 99:
+        raise ValueError('Nieprawidłowy wiek!')
+
+    new_referee = Referee(firstName=firstName, lastName=lastName,
+                        age=int(age))
+    db.session.add(new_referee)
+    db.session.commit()

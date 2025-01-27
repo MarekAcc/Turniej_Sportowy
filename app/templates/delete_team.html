@@ -7,10 +7,10 @@ Delete team
     <h3 align="center">Wybierz druzyne</h3>
     <div class="form-group">
         <label for="matches">Choose a team:</label>
-        <select name="team_id" id="team_id">
+        <select name="team_id" id="team_id" class="form-control select2">
             {% for team in teams %}
             <option value="{{ team.id }}">
-                {{ team.name }} ({{ team.tournament.name}})
+                {{ team.name }} ({{ team.tournament.name }})
             </option>
             {% endfor %}
         </select>

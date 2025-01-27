@@ -1,0 +1,28 @@
+{% extends "base_admin.html" %}
+
+{% block title %}
+New referee
+{% endblock %}
+{% block content %}
+<form method="POST">
+    <h3 align="center">Dodaj nowego sędziego</h3>
+    <div class="form-group">
+        <label for="playerFirstName">Imię sędziego</label>
+        <input type="text" class="form-control" id="playerFirstName" name="firstName" placeholder="Podaj imię trenera">
+    </div>
+    <div class="form-group">
+        <label for="playerLastName">Nazwisko sędziego</label>
+        <input type="text" class="form-control" id="playerLastName" name="lastName"
+            placeholder="Podaj nazwisko trenera">
+    </div>
+    <div class="form-group">
+        <label for="playerAge">Wiek sędziego</label>
+        <input type="number" oninput="validity.valid||(value='');" value="20" min="0" max="90" class="form-control"
+            name="age" id="refereeAge" required>
+        </select>
+
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
+</form>
+{% endblock %}

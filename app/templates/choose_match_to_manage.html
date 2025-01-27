@@ -1,23 +1,107 @@
-{%extends "base_admin.html"%}
-{%block title%}
+{% extends "base_admin.html" %}
+{% block title %}
 Choose match to manage
-{%endblock title%}
+{% endblock title %}
 {% block content %}
-<form method="POST">
-    <h3 align="center">Wybierz mecz</h3>
-    <div class="form-group">
-        <label for="matches">Choose a match:</label>
-        <select name="match_id" id="match_id">
-            {% for match in matches %}
-            <option value="{{ match.id }}">
-                {{ match.home_team.name }} vs {{ match.away_team.name }} ({{ match.tournament.name }} , {{  match.status }})
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+<h3 align="center">Wybierz mecz</h3>
 
+<!-- Dropdown do filtrowania turniejów -->
+<div class="form-group">
+    <label for="tournament_filter">Wybierz turniej:</label>
+    <select id="tournament_filter" class="form-control">
+        <option value="all">Wszystkie</option>
+        {% set unique_tournaments = [] %}
+        {% for match in matches %}
+        {% if match.tournament.name not in unique_tournaments %}
+        <option value="{{ match.tournament.name }}">{{ match.tournament.name }}</option>
+        {% set _ = unique_tournaments.append(match.tournament.name) %}
+        {% endif %}
+        {% endfor %}
+    </select>
+</div>
+
+
+<form method="POST">
+    <div class="form-group">
+        <table class="table table-striped table-custom">
+            <thead class="table-header">
+                <tr>
+                    <th>Wybierz</th>
+                    <th>Gospodarz</th>
+                    <th>Gość</th>
+                    <th>Turniej</th>
+                    <th>Status</th>
+                    <th>Sędzia</th>
+                    <th>Akcja</th>
+                </tr>
+            </thead>
+            <tbody class="table-body" id="matches_table">
+                {% for match in matches %}
+                {% if match.status == 'planned' %}
+                <tr class="table-row" data-tournament="{{ match.tournament.name }}">
+                    <td>
+                        <input type="radio" name="match_id" id="match_{{ match.id }}" value="{{ match.id }}"
+                            onchange="enableAction(this)">
+                    </td>
+                    <td>{{ match.home_team.name }}</td>
+                    <td>{{ match.away_team.name }}</td>
+                    <td>{{ match.tournament.name }}</td>
+                    <td>{{ match.status }}</td>
+                    <td>
+                        {% if match.referee %}
+                        {{ match.referee.firstName }} {{ match.referee.lastName }}
+                        {% else %}
+                        --
+                        {% endif %}
+                    </td>
+                    <td>
+                        <select name="action_type" id="action_{{ match.id }}" class="form-control" disabled>
+                            <option>Dodanie wyniku meczu</option>
+                            {% if not match.referee %}
+                            <option>Przypisanie sędziego do meczu</option>
+                            {% endif %}
+                        </select>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
 </form>
 
+<script>
+    // Funkcja odblokowująca dropdown po wyborze meczu
+    function enableAction(radio) {
+        // Zablokowanie wszystkich dropdownów
+        document.querySelectorAll('select[name="action_type"]').forEach(select => {
+            select.disabled = true;
+        });
+
+        // Odblokowanie wybranego dropdowna
+        const selectedAction = document.querySelector(`#action_${radio.value}`);
+        if (selectedAction) {
+            selectedAction.disabled = false;
+        }
+    }
+
+    // Funkcja filtrowania tabeli na podstawie wybranego turnieju
+    document.getElementById("tournament_filter").addEventListener("change", function () {
+        const selectedTournament = this.value;
+        const rows = document.querySelectorAll("#matches_table .table-row");
+
+        rows.forEach(row => {
+            const tournament = row.getAttribute("data-tournament");
+
+            // Jeśli wybrany jest "Wszystkie" lub turniej odpowiada wybranemu, pokaż wiersz
+            if (selectedTournament === "all" || tournament === selectedTournament) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
 {% endblock content %}

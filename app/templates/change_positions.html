@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+Swap Players
+{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+    <h3 align="center">Zmień pozycję</h3>
+    <div class="form-group">
+        <label for="player_id">Zawodnik</label>
+        <select class="form-control" id="player_id" name="player_id">
+            <option value="" disabled selected>Zawodnik</option>
+            {% for player in players %}
+            <option value="{{ player.id }}">{{ player.firstName }} {{ player.lastName }} ({{player.team_id}})</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="new_player_id">Pozycja</label>
+        <select class="form-control" id="position" name="position">
+            <option value="" disabled selected>Wybierz pozycję</option>
+            <option>field</option>
+            <option>substitute</option>
+        </select>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+</form>
+<a href="{{ url_for('views.coach_home') }}">Powrót do strony głównej coacha</a>
+{% endblock %}

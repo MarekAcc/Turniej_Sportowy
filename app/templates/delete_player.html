@@ -7,10 +7,10 @@ Delete player
     <h3 align="center">Wybierz zawodnika</h3>
     <div class="form-group">
         <label for="matches">Choose a player:</label>
-        <select name="player_id" id="player_id">
+        <select name="player_id" id="player_id" class="form-control select2">
             {% for player in players %}
             <option value="{{ player.id }}">
-                {{ player.firstName }} {{player.lastName}}
+                {{ player.firstName }} {{player.lastName}} ({{ player.team.name }})
             </option>
             {% endfor %}
         </select>

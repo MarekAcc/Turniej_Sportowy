@@ -7,7 +7,7 @@ Choose tournament to manage
     <h3 align="center">Wybierz turniej</h3>
     <div class="form-group">
         <label for="matches">Choose a tournament:</label>
-        <select name="tournament_id" id="tournament_id">
+        <select name="tournament_id" id="tournament_id" class="form-control select2">
             {% for tournament in tournaments %}
             <option value="{{ tournament.id }}">
                 {{ tournament.name }} ({{tournament.type}})
@@ -17,7 +17,7 @@ Choose tournament to manage
     </div>
 
     <br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Wykonaj</button>
 </form>
 
 {% endblock content %}
