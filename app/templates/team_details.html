@@ -20,12 +20,14 @@
 <ul>
     {% if players %}
     {% for player in players %}
+    <a href="{{ url_for('views.player_details', player_id=player.id) }}">
     <li>
-        <a href="{{ url_for('views.player_details', player_id=player.id) }}">
+        
             {{ player.firstName }} {{ player.lastName }}
-        </a>
+        
         (Wiek: {{ player.age }}, Pozycja: {{ player.position }}, Status: {{ player.status }})
     </li>
+    </a>
     {% endfor %}
     {% else %}
     <li>Brak zawodników w tej drużynie.</li>
@@ -36,11 +38,12 @@
 <ul>
     {% if matches %}
     {% for match in matches %}
+    <a href="{{ url_for('views.match_details', match_id=match.id) }}">
     <li>
-        <a href="{{ url_for('views.match_details', match_id=match.id) }}">
-            {{ match.home_team.name }} vs {{ match.away_team.name }}
-        </a> - {{ match.date }}
+        
+            {{ match.home_team.name }} vs {{ match.away_team.name }} -{{ match.date }}
     </li>
+    </a>
     {% endfor %}
     {% else %}
     <li>Brak rozegranych meczów dla tej drużyny.</li>

@@ -84,3 +84,194 @@
     background-color: #ffffff;
     transform: translateY(2px);
 }
+/* Formularz wyszukiwania */
+form {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+form input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #2428a2;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+form button {
+    background-color: #2428a2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+form button:hover {
+    background-color: #e9e8ee;
+    color: #2428a2;
+    transform: translateY(-2px);
+}
+
+/* Lista zawodników */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+ul li:hover {
+    background-color: #e9e8ee;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+ul li a {
+    color: #2428a2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+ul li a:hover {
+    color: #e94e77;
+    text-decoration: underline;
+}
+
+ul li span {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Link powrotu */
+a.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #2428a2;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+a.back-link:hover {
+    background-color: #e9e8ee;
+    color: #2428a2;
+}
+/* Ogólny styl dla sekcji szczegółów */
+.details-section {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.details-section h1,
+.details-section h2 {
+    color: #2428a2;
+    margin-bottom: 15px;
+}
+
+.details-section p {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    color: #555;
+}
+
+.details-section p strong {
+    color: #2428a2;
+}
+
+.details-section a {
+    color: #e94e77;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.details-section a:hover {
+    text-decoration: underline;
+}
+
+/* Ogólny styl dla list */
+.list-section {
+    margin-top: 20px;
+}
+
+.list-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.list-section li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f3f3f3;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.list-section li:hover {
+    background-color: #e9e8ee;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.list-section li a {
+    color: #2428a2;
+    text-decoration: none;
+}
+
+.list-section li a:hover {
+    text-decoration: underline;
+}
+
+/* Ogólny styl dla przycisków */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #2428a2;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #e9e8ee;
+    color: #2428a2;
+}
+
+/* Przyciski powrotu */
+.back-link {
+    margin-top: 20px;
+}
+
+a {
+  color: black;
+  text-decoration: none;  
+}
+a:hover {
+    color: grey;
+    text-decoration: none;  
+  }

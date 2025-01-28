@@ -58,8 +58,10 @@
     <tbody>
         {% for team, points in ranking.items(): %}
         <tr>
-            <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
+            <a href="{{ url_for('views.team_details', team_id=team.id) }}">
+            <td>{{ team.name }}</td>
             <td> {{ points }}</td>
+            </a>
         </tr>
         {% else %}
         <tr>

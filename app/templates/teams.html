@@ -14,9 +14,11 @@ Drużyny
 
 <ul>
     {% for team in teams %}
+    <a href="{{ url_for('views.team_details', team_id=team.id) }}">
     <li>
-        <a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a>
+       {{ team.name }}
     </li>
+    </a>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}

@@ -14,7 +14,9 @@ Turnieje
 
 <ul>
     {% for tournament in tournaments %}
-    <li><a href="{{ url_for('views.tournament_details', tournament_id=tournament.id) }}">{{ tournament.name }}</a></li>
+    <a href="{{ url_for('views.tournament_details', tournament_id=tournament.id) }}">
+    <li>{{ tournament.name }}</li>
+    </a>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}

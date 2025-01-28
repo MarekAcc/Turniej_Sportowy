@@ -8,23 +8,25 @@ New Coach(User)
     <h3 align="center">Zarejestruj się jako nowy trener</h3>
     <div class="form-group">
         <label for="coachFirstName">Imię</label>
-        <input type="text" class="form-control" id="coachFirstName" name="firstName" placeholder="Imię">
+        <input type="text" class="form-control" id="coachFirstName" name="firstName" placeholder="Imię" value="{{ form_data.get('firstName', '') }}">
     </div>
     <div class="form-group">
         <label for="coachLastName">Nazwisko</label>
-        <input type="text" class="form-control" id="coachLastName" name="lastName" placeholder="Nazwisko">
+        <input type="text" class="form-control" id="coachLastName" name="lastName" placeholder="Nazwisko" value="{{ form_data.get('lastName', '') }}">
     </div>
     <div class="form-group">
         <label for="playerAge">Wiek</label>
         <select name="age" id="playerAge" class="form-control">
             {% for i in range(18, 100) %}
-            <option value="{{ i }}">{{ i }}</option>
+                <option value="{{ i }}" {% if form_data.get('age') == i|string %}selected{% endif %}>
+                    {{ i }}
+                </option>
             {% endfor %}
         </select>
     </div>
     <div class="form-group">
         <label for="coachLogin">Login</label>
-        <input type="text" class="form-control" id="coachLogin" name="login" placeholder="Login">
+        <input type="text" class="form-control" id="coachLogin" name="login" placeholder="Login" value="{{ form_data.get('login', '') }}">
     </div>
     <div class="form-group">
         <label for="coachPass1">Hasło</label>

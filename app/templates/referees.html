@@ -14,7 +14,9 @@ Sędziowie
 
 <ul>
     {% for referee in referees %}
-    <li><a href="{{ url_for('views.referee_details', referee_id=referee.id) }}">{{ referee.firstName }} {{ referee.lastName }}</a></li>
+    <a href="{{ url_for('views.referee_details', referee_id=referee.id) }}">
+    <li>{{ referee.firstName }} {{ referee.lastName }}</li>
+    </a>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}
