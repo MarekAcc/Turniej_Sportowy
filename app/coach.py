@@ -98,8 +98,6 @@ def change_position(player_id, position):
     team_players = Team.get_players(coach_team, coach_team.id)
 
     if request.method == "POST":
-        print(player_id)
-        print(position)
         try:
             player_id = int(player_id)
             position = str(position)
@@ -107,8 +105,15 @@ def change_position(player_id, position):
             flash("Nieprawidłowe dane wejściowe.", "danger")
             return redirect(url_for('coach.home_coach'))
 
+        if position not in ['field', 'substitute', 'null']:
+            flash("Nieprawidłowa pozycja!", "danger")
+            return redirect(url_for('coach.home_coach'))
+        
+        if position == 'null':
+            position = None
         # Pobierz zawodnika na podstawie ID
         player = Player.query.get(player_id)
+    
         if not player:
             flash("Zawodnik nie istnieje.", "danger")
             return redirect(url_for('coach.home_coach'))
@@ -127,6 +132,20 @@ def change_position(player_id, position):
         if player.position == position:
             flash("Zawodnik już jest na tej pozycji.", "danger")
             return redirect(url_for('coach.home_coach'))
+
+        if position == 'field':
+            num_field_players = Player.query.filter_by(position='field', team_id=coach_team.id).count()
+            if player.status == 'suspended':
+                flash("Nie mozesz dodać zawieszonego zawodnika do pierwszego skladu!", "danger")
+                return redirect(url_for('coach.home_coach'))
+            if num_field_players >= 5:
+                flash("Twój pierwszy skład jest pełny", "danger")
+                return redirect(url_for('coach.home_coach'))
+        elif position == 'substitute':
+            num_substitute_players = Player.query.filter_by(position='substitute', team_id=coach_team.id).count()
+            if num_substitute_players >= 4:
+                flash("Twoja ławka rezerwowych jest pełna", "danger")
+                return redirect(url_for('coach.home_coach'))
 
         # Zaktualizuj pozycję zawodnika
         player.position = position
