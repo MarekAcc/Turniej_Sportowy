@@ -39,7 +39,7 @@ Dodaj match-event
             {% for match in matches %}
             {% if match.status == 'ended' %}
             <tr data-tournament="{{ match.tournament.name }}">
-                <td>{{ match.tournament.name }}</td>
+                <td>{{ match.tournament.name }} <br />{{match.tournament.type}}</td>
                 <td>{{ match.home_team.name }}</td>
                 <td>{{ match.away_team.name }}</td>
                 <td>{{ match.scoreHome }}</td>
