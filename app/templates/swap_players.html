@@ -12,7 +12,7 @@ Swap Players
         <label for="player_id">Zawodnik do wymiany</label>
         <select class="form-control" id="player_id" name="player_id">
             <option value="" disabled selected>Wybierz zawodnika do wymiany</option>
-            {% for player in players %}
+            {% for player in team_players %}
             <option value="{{ player.id }}">{{ player.firstName }} {{ player.lastName }} ({{player.team_id}})</option>
             {% endfor %}
         </select>
@@ -31,5 +31,5 @@ Swap Players
     <button type="submit" class="btn btn-primary">Submit</button>
 
 </form>
-<a href="{{ url_for('views.coach_home') }}">Powrót do strony głównej coacha</a>
+<a href="{{ url_for('coach.home_coach') }}">Powrót do strony głównej coacha</a>
 {% endblock %}

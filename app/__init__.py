@@ -22,10 +22,12 @@ def create_app():
     from .views import views
     from .auth import auth
     from .admin import admin
+    from .coach import coach
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(admin, url_prefix='/admin')
+    app.register_blueprint(coach, url_prefix='/coach')
 
     from .models import Coach
     login_manager = LoginManager()

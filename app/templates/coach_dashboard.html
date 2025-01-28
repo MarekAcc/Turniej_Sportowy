@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Strona Trenerska{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Strona główna - Zarządzaj zawodnikami</h3>
+    <h2>Trener: {{ current_user.firstName }} {{ current_user.lastName }}</h2>
+    <h4 class="mb-4">Drużyna: {{ current_user.team.name }}</h4>
+
+    <!-- Pierwszy skład -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>Pierwszy skład</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Imię i nazwisko</th>
+                        <th>Pozycja</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                        {% if player.position == 'field' %}
+                            <tr class="{% if player.status == 'suspended' %}table-danger{% endif %}">
+                                <td>{{ loop.index }}</td>
+                                <td>{{ player.firstName }} {{ player.lastName }}</td>
+                                <td>{{ player.position }}</td>
+                                <td>
+                                    {% if player.status == 'suspended' %}
+                                        <span class="badge bg-danger">Zawieszony</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Aktywny</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('coach.change_position', player_id=player.id, position='substitute') }}">
+                                        <button type="submit" class="btn btn-sm btn-warning">Przenieś na ławkę</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Ławka rezerwowych -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5>Ławka rezerwowych</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Imię i nazwisko</th>
+                        <th>Pozycja</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                        {% if player.position == 'substitute' %}
+                            <tr class="{% if player.status == 'suspended' %}table-danger{% endif %}">
+                                <td>{{ loop.index }}</td>
+                                <td>{{ player.firstName }} {{ player.lastName }}</td>
+                                <td>{{ player.position }}</td>
+                                <td>
+                                    {% if player.status == 'suspended' %}
+                                        <span class="badge bg-danger">Zawieszony</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Aktywny</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('coach.change_position', player_id=player.id, position='field') }}">
+                                        <button type="submit" class="btn btn-sm btn-success">Przenieś do pierwszego składu</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

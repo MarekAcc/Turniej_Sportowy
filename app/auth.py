@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, abort
 from .services.create import create_coach
 from flask_login import login_user, login_required, logout_user, current_user
 from .models import Tournament,Team,Match, Coach
 
 auth = Blueprint('auth', __name__)
+
 
 @auth.route('/sign-up', methods=['GET','POST'])
 def sign_up():
@@ -26,7 +27,11 @@ def sign_up():
             user = create_coach(firstName, lastName, age, login, password1, password2)
             login_user(user, remember=True)
             flash('Zarejestrowałeś się pomyślnie!', 'success')
-            return redirect(url_for('views.home'))
+            if current_user.login == 'ADMIN':
+                return redirect(url_for('admin.home_admin'))
+            else:
+                return redirect(url_for('coach.home_coach'))
+            
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template('sign_up.html', user=current_user)
@@ -59,12 +64,10 @@ def login():
         # (admin jest po prostu jednym z trenerów o loginie = ADMIN)
         if user.login == 'ADMIN':
             flash('Zalogowałeś się jako ADMIN!', 'success')
-            session['is_admin'] = True
-            return render_template("home_admin.html", user=current_user)
+            return redirect(url_for('admin.home_admin'))
         else:
-            session['is_admin'] = False
-        flash('Zalogowałeś się pomyślnie!', 'success')
-        return render_template("trener_p.html", user=current_user)
+            flash('Zalogowałeś się pomyślnie!', 'success')
+            return redirect(url_for('coach.home_coach'))
     # Jesli nie jest POSTem czyli jest GETem to wyswietl stronę logowania  
     return render_template("login.html", user=current_user)    
 
@@ -72,6 +75,5 @@ def login():
 @login_required
 def logout():
     logout_user()
-    session.pop('is_admin', None)
     flash('Zostałeś wylogowany!', 'success')
     return redirect(url_for('auth.login'))

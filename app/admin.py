@@ -1,21 +1,35 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session,abort
 from .models import Tournament,Team,Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event, create_referee
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
+from functools import wraps
 
 admin = Blueprint('admin', __name__)
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return abort(401)  # Niezalogowani użytkownicy
+        if current_user.login != 'ADMIN':
+            return abort(403)  # Brak dostępu dla użytkowników bez uprawnień admina
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @admin.route('/home-admin')
 @login_required
+@admin_required
 def home_admin():
     return render_template("home_admin.html", user=current_user)
 
 # Dodawanie zawodnika do bazy
 @admin.route('/new-player', methods=['GET', 'POST']) 
 @login_required  # Wymagane zalogowanie użytkownika
+@admin_required
 def player_adder():
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
@@ -44,6 +58,7 @@ def player_adder():
 
 @admin.route('/delete-player', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def delete_player():
     all_players = Player.query.all()
     if request.method == 'POST':
@@ -64,6 +79,7 @@ def delete_player():
 # Dodawanie nowej drużyny
 @admin.route('/team-adder', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def team_adder():
     # Pobranie listy zawodników bez przypisanej drużyny
     players = Player.get_players_without_team()
@@ -111,6 +127,7 @@ def team_adder():
 
 @admin.route('/delete-team', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def delete_team():
     all_teams = Team.query.all()
     if request.method == 'POST':
@@ -131,6 +148,7 @@ def delete_team():
 
 @admin.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tournament_adder():
     if request.method == 'POST':
         tournamentName = request.form.get('tournamentName')
@@ -156,6 +174,7 @@ def tournament_adder():
 
 @admin.route('/add-teams-to-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def teams_to_tournament_adder():
     # Pobieranie liczby drużyn
     num_teams = request.args.get('numTeams', type=int)
@@ -196,6 +215,7 @@ def teams_to_tournament_adder():
 
 @admin.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def choose_tournament_to_manage():
     all_tournaments = Tournament.query.all()
     if request.method == 'POST':
@@ -210,6 +230,7 @@ def choose_tournament_to_manage():
 
 @admin.route('/manage-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def manage_tournament():
     tournament_id = request.args.get('tournament_id', type=int)
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -221,6 +242,7 @@ def manage_tournament():
 
 @admin.route('/end-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def end_tournament(tournament_id):
     # Obsługa zakończenia turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -234,6 +256,7 @@ def end_tournament(tournament_id):
 
 @admin.route('/cancel-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def cancel_tournament(tournament_id):
     # Obsługa przerwania turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -247,6 +270,7 @@ def cancel_tournament(tournament_id):
     
 @admin.route('/delete-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def delete_tournament(tournament_id):   
     # Obsługa usuniecia turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -260,6 +284,7 @@ def delete_tournament(tournament_id):
     
 @admin.route('/draw-next-round/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def draw_next_round(tournament_id):
     # Obsługa losowania kolejnej rundy
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -272,6 +297,7 @@ def draw_next_round(tournament_id):
     
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def choose_match_to_manage():
     all_matches = Match.query.all()
     if request.method == 'POST':
@@ -291,6 +317,7 @@ def choose_match_to_manage():
 
 @admin.route('/add-referee-to-match', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def add_referee_to_match():
     all_referees = Referee.query.all()
     if request.method == 'POST':
@@ -321,6 +348,7 @@ def add_referee_to_match():
         
 @admin.route('/manage-match', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def manage_match():
     match_id = request.args.get('match_id', type=int)
     match = Match.find_match_by_id(match_id)  
@@ -354,6 +382,7 @@ def manage_match():
 
 @admin.route('/match-event-adder', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def match_event_adder():
     matches = Match.get_matches()
     players = Player.get_players()
@@ -386,7 +415,8 @@ def match_event_adder():
 
 # Dodawanie zawodnika do bazy
 @admin.route('/new-referee', methods=['GET', 'POST']) 
-@login_required  # Wymagane zalogowanie użytkownika
+@login_required 
+@admin_required # Wymagane zalogowanie użytkownika
 def referee_adder():
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
