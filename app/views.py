@@ -30,16 +30,21 @@ def home_admin():
 def tournaments():
     query = request.args.get('query')
 
-    # Jeśli zapytanie jest obecne, używamy metody `find_tournament` z modelu
+    # Jeśli zapytanie jest obecne, filtrujemy turnieje
     if query:
         try:
-            # Szukamy pojedynczego turnieju po nazwie
-            tournament = Tournament.find_tournament(query)
-            # Jeśli turniej został znaleziony, zwróć w liście
-            tournaments = [tournament] if tournament else []
+            # Pobieramy wszystkie turnieje
+            all_tournaments = Tournament.get_tournaments()
+            
+            # Filtrujemy turnieje zaczynające się na podany ciąg znaków (case-insensitive)
+            tournaments = [tournament for tournament in all_tournaments if tournament.name.lower().startswith(query.lower())]
+            
+            # Jeśli lista turniejów jest pusta, wyświetlamy komunikat
+            if not tournaments:
+                flash("Nie znaleziono turniejów pasujących do zapytania.", "warning")
         except ValueError as e:
-            # Obsługa błędów, np. gdy nie znaleziono turnieju
-            flash(str(e), 'danger')
+            # Obsługa błędów, np. problem z bazą danych
+            flash(str(e), "danger")
             tournaments = []
     else:
         # Jeśli brak zapytania, pobieramy wszystkie turnieje
@@ -47,21 +52,25 @@ def tournaments():
 
     return render_template("tournaments.html", tournaments=tournaments, user=current_user)
 
-
 @views.route('/teams')
 def teams():
     query = request.args.get('query')
 
-    # Jeśli zapytanie jest obecne, używamy metody `find_team` z modelu
+    # Jeśli zapytanie jest obecne, filtrujemy drużyny
     if query:
         try:
-            # Szukamy drużyny po nazwie
-            team = Team.find_team(query)
-            # Jeśli drużyna została znaleziona, zwróć ją w liście
-            teams = [team] if team else []
+            # Pobieramy wszystkie drużyny
+            all_teams = Team.get_teams()
+            
+            # Filtrujemy drużyny zaczynające się na podany ciąg znaków (case-insensitive)
+            teams = [team for team in all_teams if team.name.lower().startswith(query.lower())]
+            
+            # Jeśli lista drużyn jest pusta, wyświetlamy komunikat
+            if not teams:
+                flash("Nie znaleziono drużyn pasujących do zapytania.", "warning")
         except ValueError as e:
-            # Obsługa błędów, np. gdy nie znaleziono drużyny
-            flash(str(e), 'danger')
+            # Obsługa błędów, np. problem z bazą danych
+            flash(str(e), "danger")
             teams = []
     else:
         # Jeśli brak zapytania, pobieramy wszystkie drużyny
@@ -97,6 +106,7 @@ def players():
     return render_template("players.html", players=players, message=message, user=current_user)
 
 
+
 @views.route('/coaches')
 def coaches():
     query = request.args.get('query')
@@ -127,12 +137,18 @@ def referees():
 
     if query:
         try:
-            # Szukamy sędziego na podstawie zapytania
-            referee = Referee.find_ref(query)
-            referees = [referee] if referee else []
-
-            if not referee:
-                flash("Nie znaleziono sędziego.", 'danger')
+            parts = query.split(' ', 1)
+            if len(parts) == 2:
+                first_name, last_name = parts
+                refs = Referee.query.filter(
+                    (Referee.firstName.ilike(f"%{first_name}%")) &
+                    (Referee.lastName.ilike(f"%{last_name}%"))
+                ).all()
+            else:
+                refs = Referee.query.filter(
+                    (Referee.firstName.ilike(f"%{query}%")) |
+                    (Referee.lastName.ilike(f"%{query}%"))
+                ).all()
         except ValueError as e:
             flash("Błąd w przetwarzaniu zapytania: " + str(e), 'danger')
             referees = []
@@ -155,23 +171,34 @@ def referee_details(referee_id):
 def tournament_details(tournament_id):
     tournament = Tournament.query.get(tournament_id)
 
+    # Jeśli turniej nie istnieje, przekieruj z komunikatem
     if not tournament:
         flash("Turniej nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
 
     ranking = None
     rounds = None
+    matches = []
 
     # Logika dla turniejów ligowych
     if tournament.type == 'league':
-        ranking = calculate_ranking(tournament_id)
+        try:
+            # Obliczanie rankingu, obsługa wyjątku w przypadku braku meczów
+            ranking = calculate_ranking(tournament_id)
+        except ValueError as e:
+            flash(str(e), "warning")  # Wyświetlenie komunikatu o błędzie
+            ranking = {}
 
     # Logika dla turniejów typu playoff
     elif tournament.type == 'playoff':
         matches = Match.query.filter_by(tournament_id=tournament_id).all()
-        # Grupujemy mecze według rundy
-        rounds = {r: [m for m in matches if m.round == r]
-                  for r in range(1, tournament.round + 1)}
+        if matches:
+            # Grupujemy mecze według rundy
+            rounds = {r: [m for m in matches if m.round == r]
+                      for r in range(1, tournament.round + 1)}
+        else:
+            flash("Brak meczów w turnieju.", "warning")
+            rounds = {}
 
     # Pobieramy wszystkie mecze
     matches = Match.query.filter(Match.tournament_id == tournament_id).all()
@@ -184,6 +211,7 @@ def tournament_details(tournament_id):
         rounds=rounds,
         user=current_user
     )
+    
 
 
 @views.route('/team/<int:team_id>')
@@ -623,128 +651,3 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
-
-# --------------COACH OD IGORA--------------------
-
-
-@views.route('/coach-home', methods=['GET', 'POST'])
-@login_required
-def coach_home():
-    return render_template("trener_p.html", user=current_user)
-
-
-@views.route('/swap-players', methods=['GET', 'POST'])
-@login_required
-def swap_players():
-    # Sprawdź, czy zalogowany użytkownik jest trenerem
-    if not isinstance(current_user, Coach):
-        flash("Nie masz uprawnień do zmiany zawodników.", "danger")
-        return redirect(url_for('views.home'))
-
-    # Pobierz wszystkich zawodników
-    players = Player.get_players()
-
-    if request.method == 'POST':
-        # Pobierz dane z formularza
-        new_player_id = request.form.get("new_player_id")
-        player_id = request.form.get("player_id")
-
-        # Walidacja danych wejściowych
-        if not new_player_id or not player_id:
-            flash("Należy wypełnić oba pola.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players)
-
-        try:
-            new_player_id = int(new_player_id)
-            player_id = int(player_id)
-        except ValueError:
-            flash("Wybierz poprawnych zawodników.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players)
-
-        # Pobierz zawodników z bazy danych
-        new_player = Player.query.get(new_player_id)
-        player = Player.query.get(player_id)
-
-        # Sprawdź, czy zawodnicy istnieją
-        if not new_player or not player:
-            flash("Jeden lub obydwaj zawodnicy nie istnieją.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players)
-
-        # Sprawdź, czy zawodnik należy do drużyny trenera
-        if player.team_id != current_user.team_id:
-            flash("Zawodnik do wymiany nie należy do twojej drużyny.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players)
-
-        # Sprawdź, czy nowy zawodnik nie należy do żadnej drużyny
-        if new_player.team_id is not None:
-            flash("Nowy zawodnik jest już przypisany do drużyny.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players)
-
-        # Przeprowadzenie wymiany zawodników
-        try:
-            # Przypisz nowego zawodnika do drużyny trenera
-            new_player.team_id = current_user.team_id
-            # Usuń obecnego zawodnika z drużyny
-            player.team_id = None
-
-            db.session.commit()
-            flash("Wymiana zawodnika zakończona pomyślnie!", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash("Wystąpił błąd podczas wymiany zawodników. Spróbuj ponownie.", "danger")
-
-        return redirect(url_for('views.swap_players'))
-
-    return render_template("swap_players.html", user=current_user, players=players)
-
-
-@views.route('/change-positions', methods=['GET', 'POST'])
-@login_required
-def change_positions():
-    # Pobierz wszystkich zawodników
-    players = Player.get_players()
-
-    # Sprawdź, czy obecny użytkownik jest trenerem
-    if not isinstance(current_user, Coach):
-        flash("Nie masz uprawnień do zmiany pozycji zawodników.", "danger")
-        return redirect(url_for('views.home'))
-
-    if request.method == "POST":
-        player_id = request.form.get("player_id")
-        position = request.form.get("position")
-
-        try:
-            player_id = int(player_id)
-            position = str(position)
-        except (ValueError, TypeError):
-            flash("Nieprawidłowe dane wejściowe.", "danger")
-            return render_template("change_positions.html", user=current_user, players=players)
-
-        # Pobierz zawodnika na podstawie ID
-        player = Player.query.get(player_id)
-        if not player:
-            flash("Zawodnik nie istnieje.", "danger")
-            return render_template("change_positions.html", user=current_user, players=players)
-
-        # Sprawdź, czy zawodnik należy do drużyny
-        if player.team_id is None:
-            flash("Ten zawodnik nie należy do żadnej drużyny.", "danger")
-            return render_template("change_positions.html", user=current_user, players=players)
-
-        # Sprawdź, czy zawodnik należy do drużyny trenera
-        if player.team_id != current_user.team_id:
-            flash("Ten zawodnik nie należy do twojej drużyny.", "danger")
-            return render_template("change_positions.html", user=current_user, players=players)
-
-        # Sprawdź, czy zmieniasz na tę samą pozycję
-        if player.position == position:
-            flash("Zawodnik już jest na tej pozycji.", "danger")
-            return render_template("change_positions.html", user=current_user, players=players)
-
-        # Zaktualizuj pozycję zawodnika
-        player.position = position
-        db.session.commit()
-        flash("Zmiana pozycji zakończona!", "success")
-        return redirect(url_for('views.change_positions'))
-
-    return render_template("change_positions.html", user=current_user, players=players)

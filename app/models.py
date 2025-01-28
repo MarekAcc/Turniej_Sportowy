@@ -260,7 +260,7 @@ class Team(db.Model):
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
 
-    teamCoach = db.relationship('Coach', back_populates='team')
+    teamCoach = db.relationship('Coach', back_populates='team', uselist=False)
 
     # Relacje do meczów
     home_matches = db.relationship(
@@ -293,8 +293,8 @@ class Team(db.Model):
             raise ValueError("Nie istnieje druzyna o takim ID.")
         return t
 
-    def get_players(cls, name):
-        team = cls.query.get(name)
+    def get_players(cls, id):
+        team = cls.query.get(id)
         if not team:
             return 0
         return team.players
@@ -744,7 +744,6 @@ class Coach(db.Model, UserMixin):
             coach.team_id = None
         db.session.delete(coach_id)
         db.session.commit()
-
 
 class Referee(db.Model):
     id = db.Column(db.Integer, primary_key=True)

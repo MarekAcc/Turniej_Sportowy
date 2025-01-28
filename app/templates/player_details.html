@@ -20,9 +20,11 @@ Szczegóły Zawodnika
 <h2>Wydarzenia Meczu</h2>
 <ul>
     {% for event in match_events %}
-    <li>{{ event.eventType }} - {{ event.description }} (Mecz: <a
-            href="{{ url_for('views.match_details', match_id=event.match.id) }}">{{ event.match.home_team.name }} vs {{
-            event.match.away_team.name }}</a>)</li>
+    <a href="{{ url_for('views.match_details', match_id=event.match.id) }}">
+    <li>{{ event.eventType }} - {{ event.description }} (Mecz: {{ event.match.home_team.name }} vs {{
+            event.match.away_team.name }})
+    </li>
+    </a>
     {% else %}
     <li>Brak wydarzeń</li>
     {% endfor %}

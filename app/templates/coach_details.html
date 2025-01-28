@@ -11,11 +11,11 @@ Szczegóły Trenera
 <p><strong>Wiek:</strong> {{ coach.age if coach.age else 'Nieznany' }}</p>
 
 {% if team %}
+<a href="{{ url_for('views.team_details', team_id=team.id) }}">
 <p><strong>Drużyna:</strong>
-    <a href="{{ url_for('views.team_details', team_id=team.id) }}">
         {{ team.name }}
-    </a>
 </p>
+</a>
 {% else %}
 <p><strong>Drużyna:</strong> Brak przypisanej drużyny</p>
 {% endif %}

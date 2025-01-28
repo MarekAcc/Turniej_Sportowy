@@ -14,7 +14,7 @@ def create_app():
 
     app.config['SECRET_KEY'] = 'nice'
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:admin@localhost:5432/tournament'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:Wasa126x@localhost:5432/tournament'
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -22,10 +22,12 @@ def create_app():
     from .views import views
     from .auth import auth
     from .admin import admin
+    from .coach import coach
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(admin, url_prefix='/admin')
+    app.register_blueprint(coach, url_prefix='/coach')
 
     from .models import Coach
     login_manager = LoginManager()
