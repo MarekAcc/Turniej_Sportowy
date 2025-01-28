@@ -69,7 +69,6 @@ def tournaments():
 
     return render_template("tournaments.html", tournaments=tournaments, user=current_user)
 
-
 @views.route('/teams')
 def teams():
     query = request.args.get('query')
@@ -95,7 +94,6 @@ def teams():
         teams = Team.get_teams()
 
     return render_template("teams.html", teams=teams, user=current_user)
-
 
 @views.route('/players')
 def players():
@@ -153,6 +151,7 @@ def referees():
     query = request.args.get('query')
 
     if query:
+<<<<<<< HEAD
         try:
             parts = query.split(' ', 1)
             if len(parts) == 2:
@@ -169,8 +168,24 @@ def referees():
         except ValueError as e:
             flash("Błąd w przetwarzaniu zapytania: " + str(e), 'danger')
             referees = []
+=======
+        # Szukamy trenera po pełnym imieniu i nazwisku lub częściowym
+        parts = query.split(' ', 1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+            refs = Referee.query.filter(
+                (Referee.firstName.ilike(f"%{first_name}%")) &
+                (Referee.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:
+            refs = Referee.query.filter(
+                (Referee.firstName.ilike(f"%{query}%")) |
+                (Referee.lastName.ilike(f"%{query}%"))
+            ).all()
+>>>>>>> Mati
     else:
-        referees = Referee.get_refs()
+        refs = Referee.query.all()
+
     return render_template("referees.html", referees=referees, user=current_user)
 
 
@@ -188,6 +203,7 @@ def referee_details(referee_id):
 def tournament_details(tournament_id):
     tournament = Tournament.query.get(tournament_id)
 
+    # Jeśli turniej nie istnieje, przekieruj z komunikatem
     if not tournament:
         flash("Turniej nie istnieje", "danger")
         return redirect(url_for('views.tournaments'))
@@ -227,8 +243,7 @@ def tournament_details(tournament_id):
         rounds=rounds,
         user=current_user
     )
-
-
+    
 @views.route('/team/<int:team_id>')
 def team_details(team_id):
     # Pobieramy drużynę na podstawie ID

@@ -5,6 +5,13 @@ from .models import Tournament,Team,Match, Coach
 
 auth = Blueprint('auth', __name__)
 
+<<<<<<< HEAD
+=======
+import re
+
+import re
+
+>>>>>>> Mati
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
     if request.method == 'POST':
@@ -29,6 +36,27 @@ def sign_up():
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('sign_up.html', user=current_user, form_data=form_data)
 
+<<<<<<< HEAD
+=======
+        # Sprawdzenie, czy hasła są zgodne
+        if password1 != password2:
+            flash('Hasła muszą być identyczne!', 'danger')
+            return render_template('sign_up.html', user=current_user, form_data=form_data)
+
+        # Walidacja hasła: musi zawierać małe i duże litery oraz cyfrę
+        if not re.search(r'[A-Z]', password1):
+            flash('Hasło musi zawierać przynajmniej jedną dużą literę!', 'danger')
+            return render_template('sign_up.html', user=current_user, form_data=form_data)
+
+        if not re.search(r'[a-z]', password1):
+            flash('Hasło musi zawierać przynajmniej jedną małą literę!', 'danger')
+            return render_template('sign_up.html', user=current_user, form_data=form_data)
+
+        if not re.search(r'[0-9]', password1):
+            flash('Hasło musi zawierać przynajmniej jedną cyfrę!', 'danger')
+            return render_template('sign_up.html', user=current_user, form_data=form_data)
+
+>>>>>>> Mati
         # Próba dodania nowego użytkownika
         try:
             user = create_coach(firstName, lastName, age, login, password1, password2)
@@ -43,6 +71,10 @@ def sign_up():
     # Jeśli metoda to GET, wyświetl pusty formularz
     return render_template('sign_up.html', user=current_user, form_data={})
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Mati
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():

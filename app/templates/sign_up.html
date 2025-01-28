@@ -12,18 +12,28 @@ New Coach(User)
     </div>
     <div class="form-group">
         <label for="coachLastName">Nazwisko</label>
+<<<<<<< HEAD
         <input type="text" class="form-control" id="coachLastName" name="lastName" placeholder="Nazwisko", value="{{ form_data.get('lastName', '') }}">
+=======
+        <input type="text" class="form-control" id="coachLastName" name="lastName" placeholder="Nazwisko" value="{{ form_data.get('lastName', '') }}">
+>>>>>>> Mati
     </div>
     <div class="form-group">
         <label for="playerAge">Wiek</label>
         <select name="age" id="playerAge" class="form-control">
             {% for i in range(18, 100) %}
+<<<<<<< HEAD
 
 =======
             <option value="{{ i }}" {% if form_data.get('age') == i|string %}selected{% endif %}>
                 {{ i }}
             </option>
 
+=======
+                <option value="{{ i }}" {% if form_data.get('age') == i|string %}selected{% endif %}>
+                    {{ i }}
+                </option>
+>>>>>>> Mati
             {% endfor %}
         </select>
     </div>
