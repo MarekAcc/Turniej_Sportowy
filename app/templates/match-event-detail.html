@@ -1,0 +1,63 @@
+{% extends "base_admin.html" %}
+
+{% block title %}
+Szczegóły meczu
+{% endblock %}
+
+{% block content %}
+<h3 align="center">Dodaj wydarzenia do meczu</h3>
+
+<form method="POST">
+    <h4>Gospodarze: {{ match.home_team.name }} Gole: {{match.scoreHome}}</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Zawodnik</th>
+                <th>Gole</th>
+                <th>Czerwona kartka</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in match.home_team.players %}
+            <tr>
+                <td>{{ player.firstName }} {{ player.lastName }}</td>
+                <td>
+                    <input type="number" name="goals_{{ player.id }}" value="0" min="0" max="{{ match.scoreHome }}"
+                        class="form-control">
+                </td>
+                <td>
+                    <input type="checkbox" name="red_card_{{ player.id }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Goście: {{ match.away_team.name }} Gole: {{match.scoreAway}}</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Zawodnik</th>
+                <th>Gole</th>
+                <th>Czerwona kartka</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in match.away_team.players %}
+            <tr>
+                <td>{{ player.firstName }} {{ player.lastName }}</td>
+                <td>
+                    <input type="number" name="goals_{{ player.id }}" value="0" min="0" max="{{ match.scoreAway }}"
+                        class="form-control">
+                </td>
+                <td>
+                    <input type="checkbox" name="red_card_{{ player.id }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Zapisz wydarzenia</button>
+</form>
+{% endblock %}

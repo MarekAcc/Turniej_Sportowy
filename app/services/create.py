@@ -35,7 +35,8 @@ def create_tournament(name, type, status):
     else:
         raise ValueError('Błąd formatu!')
 
-    new_tournament = Tournament(name=name, type=type, status=status, round=round)
+    new_tournament = Tournament(
+        name=name, type=type, status=status, round=round)
     db.session.add(new_tournament)
     db.session.commit()
     return new_tournament
@@ -120,13 +121,13 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
     players_home = home_team.players
     players_away = away_team.players
     for player in players_home:
-        if player.position =="field":
-            player.appearances+=1
+        if player.position == "field":
+            player.appearances += 1
         if player.status == "suspended":
             player.status == "active"
     for player in players_away:
         if player.position == "field":
-            player.appearances+=1 
+            player.appearances += 1
         if player.status == "suspended":
             player.status == "active"
 
@@ -136,44 +137,40 @@ def create_match(homeTeam_id, awayTeam_id, scoreHome, scoreAway, status):
 
     return new_match
 
+
 def create_match_event(eventType, match_id, player_id):
 
     match = Match.query.get(match_id)
     if not match:
         raise ValueError(f"Mecz o ID {match_id} nie istnieje.")
-    
+
     # Pobranie turnieju
     tournament = match.tournament
     if not tournament:
         raise ValueError(f"Turniej dla meczu o ID {match_id} nie istnieje.")
 
     # Zabezpieczenie przed dodawaniem wydarzeń, jeśli wygenerowano kolejną rundę
-    if tournament.round > match.round:
+    if tournament.type == 'playoff' and tournament.round > match.round:
         raise ValueError(
             "Nie można dodawać wydarzeń do meczu, ponieważ następna runda turnieju została już wygenerowana."
         )
-    
-    
+
     # Sprawdzenie, czy można dodać kolejny gol
     if eventType == "goal":
         # Zliczanie istniejących wydarzeń typu "goal" w meczu
         current_home_goals = len([
-            event for event in match.matchEvents 
+            event for event in match.matchEvents
             if event.eventType == "goal" and event.player_id in [player.id for player in match.home_team.players]
         ])
         current_away_goals = len([
-            event for event in match.matchEvents 
+            event for event in match.matchEvents
             if event.eventType == "goal" and event.player_id in [player.id for player in match.away_team.players]
         ])
 
         # Sprawdzenie, czy dodanie kolejnego gola jest możliwe
-        print(current_home_goals, current_away_goals)
-        print(match.scoreHome,match.scoreAway)
-        if (current_home_goals == match.scoreHome and current_away_goals == match.scoreAway):
-            raise ValueError("Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
-
-
-             
+        if (current_home_goals and current_home_goals >= match.scoreHome) and (current_away_goals and current_away_goals >= match.scoreAway):
+            raise ValueError(
+                f"Nie można dodać kolejnego gola, wynik meczu już został osiągnięty.")
 
     new_match_event = MatchEvent(
         eventType=eventType,
@@ -184,18 +181,17 @@ def create_match_event(eventType, match_id, player_id):
     player = Player.query.get(player_id)
     if not player:
         raise ValueError(f"Zawodnik o ID {player_id} nie istnieje.")
-    
+
     if eventType == "goal":
-        player.goals+=1
+        player.goals += 1
     elif eventType == "redCard":
         player.status = "suspended"
-    
-        
 
     db.session.add(new_match_event)
     db.session.commit()
 
     return new_match_event
+
 
 def create_referee(firstName, lastName, age):
     if len(firstName) > 50 or len(firstName) < 1:
@@ -206,6 +202,6 @@ def create_referee(firstName, lastName, age):
         raise ValueError('Nieprawidłowy wiek!')
 
     new_referee = Referee(firstName=firstName, lastName=lastName,
-                        age=int(age))
+                          age=int(age))
     db.session.add(new_referee)
     db.session.commit()

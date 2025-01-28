@@ -7,6 +7,7 @@ from .services.create import create_player, create_tournament, create_team, crea
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
 
+
 views = Blueprint('views', __name__)
 
 # HOME PAGE --------------------------------------------------------------------------------------------------------
@@ -623,6 +624,60 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+
+@views.route('/match-event-detail/<int:match_id>', methods=['GET', 'POST'])
+@login_required
+def match_event_detail(match_id):
+    match = Match.query.get(match_id)
+    if not match:
+        flash("Mecz nie istnieje.", "danger")
+        return redirect(url_for('views.match_event_adder'))
+
+    if request.method == "POST":
+        home_goals_sum = 0
+        away_goals_sum = 0
+
+        # Zliczanie goli dla każdej drużyny
+        for player in match.home_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+            home_goals_sum += goals
+
+        for player in match.away_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+            away_goals_sum += goals
+
+        # Walidacja sumy goli
+        if home_goals_sum != match.scoreHome:
+            flash(
+                f"Nieprawidłowa suma goli dla drużyny gospodarzy. Powinna wynosić {match.scoreHome}, a wynosi {home_goals_sum}.", "danger")
+            return render_template("match-event-detail.html", user=current_user, match=match)
+
+        if away_goals_sum != match.scoreAway:
+            flash(
+                f"Nieprawidłowa suma goli dla drużyny gości. Powinna wynosić {match.scoreAway}, a wynosi {away_goals_sum}.", "danger")
+            return render_template("match-event-detail.html", user=current_user, match=match)
+
+        # Jeśli walidacja przeszła, zapisz dane
+        for player in match.home_team.players + match.away_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+
+            red_card = request.form.get(f"red_card_{player.id}", False)
+
+            if goals > 0:
+                for _ in range(goals):
+                    create_match_event("goal", match_id, player.id)
+
+            if red_card:
+                create_match_event("redCard", match_id, player.id)
+
+        flash("Wydarzenia zostały zapisane!", "success")
+        return redirect(url_for('views.match_event_adder'))
+
+    return render_template("match-event-detail.html", user=current_user, match=match)
 
 # --------------COACH OD IGORA--------------------
 
