@@ -93,3 +93,42 @@
     width: 100%;
     font-size: 16px;
 }
+
+/*tabele*/
+.scrollable-table-container {
+    max-height: 400px;
+    /* Maksymalna wysokość kontenera */
+    overflow-y: auto;
+    /* Włącza przewijanie w pionie */
+    border: 1px solid #ddd;
+    /* Opcjonalne – dla lepszej widoczności kontenera */
+    margin-bottom: 20px;
+    /* Opcjonalne – odstęp od innych elementów */
+}
+
+.table {
+    width: 100%;
+    /* Szerokość tabeli na 100% kontenera */
+    border-collapse: collapse;
+    /* Aby usunąć przestrzenie między komórkami */
+}
+
+.table th,
+.table td {
+    padding: 8px;
+    /* Odstęp w komórkach */
+    text-align: left;
+    /* Wyrównanie tekstu w komórkach */
+    border-bottom: 1px solid #ddd;
+    /* Linia pod komórkami */
+}
+
+.table th {
+    background-color: #f4f4f4;
+    /* Tło nagłówków */
+
+    top: 0;
+    /* Utrzymanie nagłówków na górze, gdy przewijasz */
+    z-index: 1;
+    /* Aby nagłówki były widoczne nad zawartością */
+}

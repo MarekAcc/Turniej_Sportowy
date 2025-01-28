@@ -8,6 +8,7 @@ Delete player
     <div class="form-group">
         <label for="matches">Choose a player:</label>
         <select name="player_id" id="player_id" class="form-control select2">
+            <option value="" disabled selected></option>
             {% for player in players %}
             <option value="{{ player.id }}">
                 {{ player.firstName }} {{player.lastName}} ({{ player.team.name }})

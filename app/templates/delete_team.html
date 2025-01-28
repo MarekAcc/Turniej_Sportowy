@@ -8,6 +8,7 @@ Delete team
     <div class="form-group">
         <label for="matches">Choose a team:</label>
         <select name="team_id" id="team_id" class="form-control select2">
+            <option value="" disabled selected></option>
             {% for team in teams %}
             <option value="{{ team.id }}">
                 {{ team.name }} ({{ team.tournament.name }})
