@@ -6,7 +6,7 @@ from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
-
+from .admin import admin_required
 views = Blueprint('views', __name__)
 
 # HOME PAGE --------------------------------------------------------------------------------------------------------
@@ -35,10 +35,11 @@ def tournaments():
         try:
             # Pobieramy wszystkie turnieje
             all_tournaments = Tournament.get_tournaments()
-            
+
             # Filtrujemy turnieje zaczynające się na podany ciąg znaków (case-insensitive)
-            tournaments = [tournament for tournament in all_tournaments if tournament.name.lower().startswith(query.lower())]
-            
+            tournaments = [tournament for tournament in all_tournaments if tournament.name.lower(
+            ).startswith(query.lower())]
+
             # Jeśli lista turniejów jest pusta, wyświetlamy komunikat
             if not tournaments:
                 flash("Nie znaleziono turniejów pasujących do zapytania.", "warning")
@@ -52,6 +53,7 @@ def tournaments():
 
     return render_template("tournaments.html", tournaments=tournaments, user=current_user)
 
+
 @views.route('/teams')
 def teams():
     query = request.args.get('query')
@@ -61,10 +63,11 @@ def teams():
         try:
             # Pobieramy wszystkie drużyny
             all_teams = Team.get_teams()
-            
+
             # Filtrujemy drużyny zaczynające się na podany ciąg znaków (case-insensitive)
-            teams = [team for team in all_teams if team.name.lower().startswith(query.lower())]
-            
+            teams = [team for team in all_teams if team.name.lower(
+            ).startswith(query.lower())]
+
             # Jeśli lista drużyn jest pusta, wyświetlamy komunikat
             if not teams:
                 flash("Nie znaleziono drużyn pasujących do zapytania.", "warning")
@@ -104,7 +107,6 @@ def players():
         message = None
 
     return render_template("players.html", players=players, message=message, user=current_user)
-
 
 
 @views.route('/coaches')
@@ -211,7 +213,6 @@ def tournament_details(tournament_id):
         rounds=rounds,
         user=current_user
     )
-    
 
 
 @views.route('/team/<int:team_id>')
@@ -318,6 +319,7 @@ def show_tournament():
 
 @views.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tournament_adder():
     if request.method == 'POST':
         tournamentName = request.form.get('tournamentName')
@@ -345,6 +347,7 @@ def tournament_adder():
 
 @views.route('/add-teams-to-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def teams_to_tournament_adder():
     # Pobieranie liczby drużyn
     num_teams = request.args.get('numTeams', type=int)
@@ -386,6 +389,7 @@ def teams_to_tournament_adder():
 
 @views.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def choose_tournament_to_manage():
     all_tournaments = Tournament.query.all()
 
@@ -398,6 +402,7 @@ def choose_tournament_to_manage():
 
 @views.route('/manage-tournament', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def manage_tournament():
     tournament_id = request.args.get('tournament_id', type=int)
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -410,6 +415,7 @@ def manage_tournament():
 
 @views.route('/cancel-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def cancel_tournament(tournament_id):
     # Obsługa przerwania turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -420,6 +426,7 @@ def cancel_tournament(tournament_id):
 
 @views.route('/end-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def end_tournament(tournament_id):
     # Obsługa zakończenia turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -430,6 +437,7 @@ def end_tournament(tournament_id):
 
 @views.route('/delete-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def delete_tournament(tournament_id):
     Tournament.delete(tournament_id)
     return redirect(url_for('views.home_admin'))
@@ -437,6 +445,7 @@ def delete_tournament(tournament_id):
 
 @views.route('/draw-next-round/<int:tournament_id>', methods=['POST'])
 @login_required
+@admin_required
 def draw_next_round(tournament_id):
     # Obsługa losowania kolejnej rundy
     tournament = Tournament.find_tournament_by_id(tournament_id)
@@ -446,6 +455,7 @@ def draw_next_round(tournament_id):
 # Dodawanie zawodnika do bazy
 @views.route('/new-player', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def player_adder():
     if request.method == 'POST':
         firstName = request.form.get('firstName')
@@ -468,6 +478,7 @@ def player_adder():
 
 @views.route('/delete-player', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def delete_player():
     all_players = Player.query.all()
     if request.method == 'POST':
@@ -485,6 +496,7 @@ def delete_player():
 
 @views.route('/delete-team', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def delete_team():
     all_teams = Team.query.all()
     if request.method == 'POST':
@@ -502,6 +514,7 @@ def delete_team():
 
 @views.route('/team-adder', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def team_adder():
     # Pobierz zawodnikow bez druzyny
     players = Player.get_players_without_team()
@@ -534,6 +547,7 @@ def team_adder():
 
 @views.route('/match-adder', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def match_adder():
     if request.method == 'POST':
         homeTeam_id = request.form.get('homeTeam_id')
@@ -563,6 +577,7 @@ def match_adder():
 
 @views.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def choose_match_to_manage():
 
     all_matches = Match.query.all()
@@ -575,6 +590,7 @@ def choose_match_to_manage():
 
 
 @views.route('/manage-match', methods=['GET', 'POST'])
+@admin_required
 @login_required
 def manage_match():
     match_id = request.args.get('match_id', type=int)
@@ -621,6 +637,7 @@ def manage_match():
 
 
 @views.route('/match-event-adder', methods=['GET', 'POST'])
+@admin_required
 @login_required
 def match_event_adder():
     matches = Match.get_matches()
@@ -651,3 +668,58 @@ def match_event_adder():
 
     # Obsługa metody GET
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
+
+
+@views.route('/match-event-detail/<int:match_id>', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def match_event_detail(match_id):
+    match = Match.query.get(match_id)
+    if not match:
+        flash("Mecz nie istnieje.", "danger")
+        return redirect(url_for('views.match_event_adder'))
+
+    if request.method == "POST":
+        home_goals_sum = 0
+        away_goals_sum = 0
+
+        # Zliczanie goli dla każdej drużyny
+        for player in match.home_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+            home_goals_sum += goals
+
+        for player in match.away_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+            away_goals_sum += goals
+
+        # Walidacja sumy goli
+        if home_goals_sum != match.scoreHome:
+            flash(
+                f"Nieprawidłowa suma goli dla drużyny gospodarzy. Powinna wynosić {match.scoreHome}, a wynosi {home_goals_sum}.", "danger")
+            return render_template("match-event-detail.html", user=current_user, match=match)
+
+        if away_goals_sum != match.scoreAway:
+            flash(
+                f"Nieprawidłowa suma goli dla drużyny gości. Powinna wynosić {match.scoreAway}, a wynosi {away_goals_sum}.", "danger")
+            return render_template("match-event-detail.html", user=current_user, match=match)
+
+        # Jeśli walidacja przeszła, zapisz dane
+        for player in match.home_team.players + match.away_team.players:
+            goals = request.form.get(f"goals_{player.id}", "0")
+            goals = int(goals) if goals.isdigit() else 0
+
+            red_card = request.form.get(f"red_card_{player.id}", False)
+
+            if goals > 0:
+                for _ in range(goals):
+                    create_match_event("goal", match_id, player.id)
+
+            if red_card:
+                create_match_event("redCard", match_id, player.id)
+
+        flash("Wydarzenia zostały zapisane!", "success")
+        return redirect(url_for('views.match_event_adder'))
+
+    return render_template("match-event-detail.html", user=current_user, match=match)

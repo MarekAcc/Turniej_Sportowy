@@ -14,14 +14,18 @@ Trenerzy
 
 <ul>
     {% for coach in coaches %}
+    {% if coach.login != 'ADMIN' %}
     <a href="{{ url_for('views.coach_details', coach_id=coach.id) }}">
-    <li>
-        
+
+        <li>
+
             {{ coach.firstName }} {{ coach.lastName }}
-        
-    </li>
+
+        </li>
     </a>
+    {% endif %}
     {% else %}
+
     <li>Brak wyników</li>
     {% endfor %}
 </ul>

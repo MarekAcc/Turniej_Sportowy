@@ -93,39 +93,6 @@
     width: 100%;
     font-size: 16px;
 }
-/* Formularz wyszukiwania */
-form {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-form input[type="text"] {
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #2428a2;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-form button {
-    background-color: #2428a2;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-form button:hover {
-    background-color: #e9e8ee;
-    color: #2428a2;
-    transform: translateY(-2px);
-}
 
 /* Lista zawodników */
 ul {
@@ -184,6 +151,7 @@ a.back-link:hover {
     background-color: #e9e8ee;
     color: #2428a2;
 }
+
 /* Ogólny styl dla sekcji szczegółów */
 .details-section {
     padding: 20px;
@@ -277,10 +245,11 @@ a.back-link:hover {
 }
 
 a {
-  color: black;
-  text-decoration: none;  
+    color: black;
+    text-decoration: none;
 }
+
 a:hover {
     color: grey;
-    text-decoration: none;  
-  }
+    text-decoration: none;
+}
