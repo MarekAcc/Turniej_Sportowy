@@ -27,7 +27,7 @@ def sign_up():
         # Sprawdzenie czy formularze nie są puste
         if not firstName or not lastName or not age or not login or not password1 or not password2:
             flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template('sign_up.html', user=current_user)
+            return render_template('sign_up.html', user=current_user, form_data=form_data)
                 # Sprawdzenie, czy hasła są zgodne
         if password1 != password2:
             flash('Hasła muszą być identyczne!', 'danger')
