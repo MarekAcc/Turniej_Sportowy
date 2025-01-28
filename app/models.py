@@ -453,7 +453,7 @@ class Match(db.Model):
     scoreHome = db.Column(db.Integer)
     scoreAway = db.Column(db.Integer)
     status = db.Column(
-        db.Enum('planned', 'ended', name='match_status_enum'), nullable=False)
+        db.Enum('planned', 'ended', 'managed', name='match_status_enum'), nullable=False)
     round = db.Column(db.Integer)
 
     homeTeam_id = db.Column(

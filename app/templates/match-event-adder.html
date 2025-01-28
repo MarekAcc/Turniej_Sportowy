@@ -37,6 +37,7 @@ Dodaj match-event
         </thead>
         <tbody id="match_table_body">
             {% for match in matches %}
+            {% if match.status == 'ended' %}
             <tr data-tournament="{{ match.tournament.name }}">
                 <td>{{ match.tournament.name }}</td>
                 <td>{{ match.home_team.name }}</td>
@@ -49,6 +50,7 @@ Dodaj match-event
                     </a>
                 </td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>

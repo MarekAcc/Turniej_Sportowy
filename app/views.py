@@ -714,11 +714,18 @@ def match_event_detail(match_id):
 
             if goals > 0:
                 for _ in range(goals):
-                    create_match_event("goal", match_id, player.id)
+                    try:
+                        create_match_event("goal", match_id, player.id)
+                    except ValueError:
+                        flash("Błąd create_match_event!", "danger")
+                        return render_template("match-event-detail.html", user=current_user, match=match)
 
             if red_card:
                 create_match_event("redCard", match_id, player.id)
 
+
+        match.status = 'managed'
+        db.session.commit()
         flash("Wydarzenia zostały zapisane!", "success")
         return redirect(url_for('views.match_event_adder'))
 
