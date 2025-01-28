@@ -13,7 +13,9 @@ Create team
     </div>
     <div class="form-group">
         <label for="name">Dodaj trenera</label>
-        <select class="form-control" name="coach_id" id="coach_id" required>
+
+
+        <select class="form-control select2" name="coach_id" id="coach_id" required>
             <option value="" disabled selected>Wybierz trenera</option>
             {% for coach in coaches %}
             <option value="{{ coach.id }}">
@@ -21,13 +23,15 @@ Create team
             </option>
             {% endfor %}
         </select>
-     </div>
-    <!-- Lista wyboru zawodników -->
+    </div>
     {% for i in range(1, 3) %}
+
     <div class="form-group">
         <label for="player_id_{{ i }}">Wybierz zawodnika {{ i }}:</label>
-        <select class="form-control" name="player_id_{{ i }}" id="player_id_{{ i }}" required>
-            <option value="" disabled selected>Wybierz zawodnika</option>
+
+
+        <select class="form-control select2" name="player_id_{{ i }}" id="player_id_{{ i }}" required>
+            <option value="" disabled selected>Wpisz lub wybierz zawodnika</option>
             {% for player in players %}
             <option value="{{ player.id }}">
                 {{ player.firstName }} {{ player.lastName }}
@@ -39,4 +43,6 @@ Create team
     <br />
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+
+
 {% endblock %}

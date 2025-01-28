@@ -37,7 +37,7 @@ Choose match to manage
             </thead>
             <tbody class="table-body" id="matches_table">
                 {% for match in matches %}
-                {% if match.status != 'ended' %}
+                {% if match.status == 'planned' %}
                 <tr class="table-row" data-tournament="{{ match.tournament.name }}">
                     <td>
                         <input type="radio" name="match_id" id="match_{{ match.id }}" value="{{ match.id }}"

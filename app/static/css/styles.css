@@ -84,6 +84,15 @@
     background-color: #ffffff;
     transform: translateY(2px);
 }
+
+.search-bar {
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    width: 100%;
+    font-size: 16px;
+}
 /* Formularz wyszukiwania */
 form {
     margin-bottom: 20px;
