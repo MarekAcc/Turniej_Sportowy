@@ -18,9 +18,13 @@ Create team
         <select class="form-control select2" name="coach_id" id="coach_id" required>
             <option value="" disabled selected>Wybierz trenera</option>
             {% for coach in coaches %}
+            {% if coach.login != 'ADMIN' %}
+            {% if not coach.team %}
             <option value="{{ coach.id }}">
-                {{ coach.firstName }} {{ coach.lastName }} ({{ coach.team.name }})
+                {{ coach.firstName }} {{ coach.lastName }}
             </option>
+            {% endif %}
+            {% endif %}
             {% endfor %}
         </select>
     </div>
