@@ -85,12 +85,25 @@
                                     <form method="POST" action="{{ url_for('coach.change_position', player_id=player.id, position='field') }}">
                                         <button type="submit" class="btn btn-sm btn-success">Przenieś do pierwszego składu</button>
                                     </form>
+                                    <form method="POST" action="{{ url_for('coach.remove_player_from_team') }}" class="d-inline">
+                                        <input type="hidden" name="player_id" value="{{ player.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Usuń z drużyny">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
+                    <!-- Przycisk "Dodaj nowego zawodnika" -->
+        <div class="mt-3">
+            <form method="POST" action="{{ url_for('coach.add_new_player') }}">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Dodaj nowego zawodnika
+                </button>
+            </form>
         </div>
     </div>
 </div>

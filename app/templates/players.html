@@ -19,12 +19,14 @@ Zawodnicy
 
 <ul>
     {% for player in players %}
+    <a href="{{ url_for('views.player_details', player_id=player.id) }}">
     <li>
-        <a href="{{ url_for('views.player_details', player_id=player.id) }}">
+       
             {{ player.firstName }} {{ player.lastName }}
-        </a>
+  
         (Wiek: {{ player.age }}, Pozycja: {{ player.position }}, Status: {{ player.status }})
     </li>
+    </a>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}

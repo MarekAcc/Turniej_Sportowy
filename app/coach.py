@@ -12,73 +12,83 @@ coach = Blueprint('coach', __name__)
 @login_required
 def home_coach():
     coach_team = current_user.team
-    players = Team.get_players(coach_team, coach_team.id)
+    if coach_team:
+        players = Team.get_players(coach_team, coach_team.id)
+    else:
+        players = {}
     return render_template("coach_dashboard.html", user=current_user, players=players)
 
 # --------------COACH OD IGORA--------------------
-
-
-@coach.route('/swap-players', methods=['GET', 'POST'])
+@coach.route('/remove-player-from-team', methods=['POST'])
 @login_required
-def swap_players():
-    # Pobierz wszystkich zawodników
-    coach_team = current_user.team
-    team_players = Team.get_players(coach_team, coach_team.id)
+def remove_player_from_team():
+    player_id = request.form.get('player_id')
+
+    if not player_id:
+        flash('Nie podano zawodnika do usunięcia!', 'danger')
+        return redirect(url_for('coach.home_coach'))
+
+    # Znajdź zawodnika w bazie
+    player = Player.query.get(player_id)
+
+    if not player:
+        flash('Nie znaleziono zawodnika!', 'danger')
+        return redirect(url_for('coach.home_coach'))
+
+    if player.team_id != current_user.team.id:
+        flash('Nie możesz usunąć zawodnika z innej drużyny!', 'danger')
+        return redirect(url_for('coach.home_coach'))
+
+    # Usuń zawodnika z drużyny
+    player.team_id = None  # Lub ustaw na inną drużynę, jeśli to pożądane
+    db.session.commit()
+
+    flash(f'Zawodnik {player.firstName} {player.lastName} został usunięty z drużyny.', 'success')
+    return redirect(url_for('coach.home_coach'))
+
+@coach.route('/add-new-player', methods=['GET', 'POST'])
+@login_required
+def add_new_player():
     players = Player.get_players_without_team()
 
     if request.method == 'POST':
         # Pobierz dane z formularza
         new_player_id = request.form.get("new_player_id")
-        player_id = request.form.get("player_id")
 
-        # Walidacja danych wejściowych
-        if not new_player_id or not player_id:
-            flash("Należy wypełnić oba pola.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
+        if not new_player_id:
+            flash("Należy wypełnić pole.", "danger")
+            return render_template("add_new_player_by_coach.html", user=current_user, players=players)
 
         try:
             new_player_id = int(new_player_id)
-            player_id = int(player_id)
         except ValueError:
             flash("Wybierz poprawnych zawodników.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
+            return render_template("add_new_player_by_coach.html", user=current_user, players=players)
 
-        # Pobierz zawodników z bazy danych
         new_player = Player.query.get(new_player_id)
-        player = Player.query.get(player_id)
 
-        # Sprawdź, czy zawodnicy istnieją
-        if not new_player or not player:
-            flash("Jeden lub obydwaj zawodnicy nie istnieją.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
+        if not new_player:
+            flash("Zawodnik nie istnieje", "danger")
+            return render_template("add_new_player_by_coach.html", user=current_user, players=players)
 
-        # Sprawdź, czy zawodnik należy do drużyny trenera
-        if player.team_id != current_user.team_id:
-            flash("Zawodnik do wymiany nie należy do twojej drużyny.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
-
-        # Sprawdź, czy nowy zawodnik nie należy do żadnej drużyny
         if new_player.team_id is not None:
             flash("Nowy zawodnik jest już przypisany do drużyny.", "danger")
-            return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
+            return render_template("add_new_player_by_coach.html", user=current_user, players=players)
 
         # Przeprowadzenie wymiany zawodników
         try:
             # Przypisz nowego zawodnika do drużyny trenera
             new_player.team_id = current_user.team_id
-            # Usuń obecnego zawodnika z drużyny
-            player.team_id = None
 
             db.session.commit()
-            flash("Wymiana zawodnika zakończona pomyślnie!", "success")
+            flash("Dodanie zawodnika zakończone pomyślnie!", "success")
         except Exception as e:
             db.session.rollback()
-            flash("Wystąpił błąd podczas wymiany zawodników. Spróbuj ponownie.", "danger")
+            flash("Wystąpił błąd dodawania zawodnika. Spróbuj ponownie.", "danger")
 
-        return redirect(url_for('coach.swap_players'))
-
-    return render_template("swap_players.html", user=current_user, players=players, team_players=team_players)
-
+        return redirect(url_for('coach.add_new_player'))
+    
+    return render_template("add_new_player_by_coach.html", user=current_user, players=players)
 
 @coach.route('/change-position/<int:player_id>/<position>', methods=['POST'])
 @login_required

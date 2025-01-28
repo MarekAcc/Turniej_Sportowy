@@ -260,7 +260,7 @@ class Team(db.Model):
     tournament = db.relationship('Tournament', back_populates='teams')
     players = db.relationship('Player', back_populates='team')
 
-    teamCoach = db.relationship('Coach', back_populates='team')
+    teamCoach = db.relationship('Coach', back_populates='team', uselist=False)
 
     # Relacje do meczów
     home_matches = db.relationship(

@@ -18,7 +18,9 @@ New Coach(User)
         <label for="playerAge">Wiek</label>
         <select name="age" id="playerAge" class="form-control">
             {% for i in range(18, 100) %}
-            <option value="{{ i }}">{{ i }}</option>
+            <option value="{{ i }}" {% if form_data.get('age') == i|string %}selected{% endif %}>
+                {{ i }}
+            </option>
             {% endfor %}
         </select>
     </div>
