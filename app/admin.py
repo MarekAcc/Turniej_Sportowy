@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session,abort
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session,abort,jsonify
 from .models import Tournament,Team,Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
@@ -245,7 +245,6 @@ def manage_tournament():
     print(matches)
     ranking = None
     rounds = None
-    matches = []
     # Logika dla turniejów ligowych
     if tournament.type == 'league':
         try:
@@ -290,7 +289,7 @@ def end_tournament(tournament_id):
         return redirect(url_for('admin.home_admin'))
     except ValueError as e:
         flash(str(e), 'danger')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
 
 @admin.route('/cancel-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
@@ -328,10 +327,10 @@ def draw_next_round(tournament_id):
     tournament = Tournament.find_tournament_by_id(tournament_id)
     try:
         Tournament.generate_next_round(tournament)
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
     except ValueError as e:
         flash(str(e), 'danger')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
     
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
@@ -356,6 +355,42 @@ def choose_match_to_manage():
             return redirect(url_for('admin.add_referee_to_match', match_id=match_id))
 
     return render_template('choose_match_to_manage.html',matches=all_matches)
+@admin.route('/process-match-action', methods=['POST'])
+@login_required
+@admin_required
+def process_match_action():
+    match_id = request.form.get('match_id', type=int)
+    action_type = request.form.get('action_type')
+
+    if not match_id or not action_type:
+        return jsonify({"success": False, "error": "Brak wymaganych danych"}), 400
+
+    match = Match.find_match_by_id(match_id)
+    if not match:
+        return jsonify({"success": False, "error": "Nie znaleziono meczu"}), 404
+
+    if match.status != 'planned':
+        return jsonify({"success": False, "error": "Nie można edytować zakończonego meczu"}), 403
+
+    # Obsługa przypisania sędziego
+    if action_type == "assign_referee":
+        if match.referee:
+            return jsonify({"success": False, "error": "Mecz ma już przypisanego sędziego"}), 400
+
+        return jsonify({
+            'success': True,
+            'redirect_url': url_for('admin.add_referee_to_match', match_id=match_id)
+        })
+    # Obsługa dodania wyniku meczu
+    elif action_type == "add_result":
+        return jsonify({
+            'success': True,
+            'redirect_url': url_for('admin.manage_match', match_id=match_id)
+        })
+
+    return jsonify({"success": False, "error": "Nieznana akcja"}), 400
+
+
 
 @admin.route('/add-referee-to-match', methods=['GET', 'POST'])
 @login_required
@@ -384,7 +419,7 @@ def add_referee_to_match():
 
         db.session.commit()
         flash('Przypisano sędziego do meczu! ', 'success')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
 
     return render_template('add_referee_to_match.html',referees=all_referees)
         
@@ -396,11 +431,11 @@ def manage_match():
     match = Match.find_match_by_id(match_id)  
     if not match:
         flash('Nie ma takiego meczu!','warning')
-        return redirect(url_for('admin.choose_match_to_manage'))
+        return redirect(url_for('admin.home_admin'))
 
     if match.status != 'planned':
         flash('Nie mozna edytować zakonczonego meczu!', 'warning')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
     
     if not match.referee:
         flash('Nie mozna dodać wyniku, gdy nie ma sędziego meczu!', 'warning')
@@ -426,10 +461,7 @@ def manage_match():
 
     if suspended_players:
         flash('W składach druzyn są zawodnicy zawieszeni!', 'warning')
-        return redirect(url_for('admin.choose_match_to_manage'))
-
-
-
+        return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
 
     if request.method == 'POST':
         scoreHome = request.form.get('scoreHome')
@@ -442,7 +474,7 @@ def manage_match():
         try:
             Match.finish_match(match, scoreHome,scoreAway)
             flash('Dodano wynik meczu!', 'success')
-            return redirect(url_for('admin.match_event_adder'))
+            return redirect(url_for('views.match_event_detail', match_id=match_id))
         except ValueError as e:
             flash(str(e), 'danger')
             return redirect(url_for('admin.home_admin'))

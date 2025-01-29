@@ -26,7 +26,7 @@ def calculate_ranking(tournmanet_id):
 
     # Liczymy punkty na podstawie wyników meczów
     for match in matches:
-        if match.status != 'ended':
+        if match.status != 'managed':
             continue  # Ignorujemy mecze, które się nie zakończyły
 
         if match.scoreHome > match.scoreAway:

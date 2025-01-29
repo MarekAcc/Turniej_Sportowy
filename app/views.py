@@ -491,7 +491,7 @@ def manage_match():
 
         db.session.commit()
         flash('Dodano wynik meczu!', 'success')
-        return redirect(url_for('views.home_admin'))
+        return redirect(url_for('admin.home_admin'))
 
     return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam, awayTeam=awayTeam, user=current_user)
 
@@ -586,6 +586,6 @@ def match_event_detail(match_id):
         match.status = 'managed'
         db.session.commit()
         flash("Wydarzenia zostały zapisane!", "success")
-        return redirect(url_for('views.match_event_adder'))
+        return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
 
     return render_template("match-event-detail.html", user=current_user, match=match)

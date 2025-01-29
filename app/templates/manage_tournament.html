@@ -3,6 +3,56 @@
 {% block title %}Zarządzanie Turniejem - {{ tournament.name }}{% endblock %}
 
 {% block content %}
+<style>
+.container {
+    max-width: 1200px; /* Ustawiamy maksymalną szerokość kontenera */
+    margin: 0 auto; /* Wyśrodkowanie kontenera na stronie */
+}
+
+.card {
+    border: none; /* Usunięcie domyślnych obramowań */
+    border-radius: 10px; /* Zaokrąglenie rogów karty */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Dodanie cienia dla karty */
+    margin-bottom: 20px; /* Odstęp od innych elementów poniżej */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animacja zmiany karty */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Unoszenie karty przy najechaniu */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Mocniejszy cień na hover */
+}
+
+.card-header {
+    background-color: #007bff; /* Kolor tła dla nagłówka */
+    color: white; /* Kolor tekstu na białe */
+    border-top-left-radius: 10px; /* Zaokrąglenie górnych rogów karty */
+    border-top-right-radius: 10px; /* Zaokrąglenie górnych rogów karty */
+    padding: 20px; /* Odstęp w nagłówku */
+    text-align: center; /* Wyrównanie tekstu w nagłówku */
+}
+
+.card-body {
+    padding: 20px; /* Wewnętrzny odstęp wewnątrz karty */
+    font-size: 16px; /* Ustalamy rozmiar czcionki dla treści */
+    line-height: 1.6; /* Ustalamy odstępy między liniami */
+    color: #555; /* Kolor tekstu */
+}
+
+.card-body p {
+    margin-bottom: 15px; /* Odstęp między akapitami */
+}
+
+.card-body strong {
+    color: #007bff; /* Kolor dla wyróżnionych fragmentów tekstu */
+    font-weight: 600; /* Pogrubienie tekstu */
+}
+
+h1, h3 {
+    font-family: 'Roboto', sans-serif; /* Można zmienić czcionkę na bardziej nowoczesną */
+    font-weight: 600; /* Pogrubienie nagłówka */
+}
+
+</style>
 <div class="container mt-4">
     <div class="card">
         <div class="card-header bg-primary text-white">
@@ -10,14 +60,130 @@
         </div>
         <div class="card-body">
             <p><strong>Typ turnieju:</strong> {{ tournament.type }}</p>
-            <p><strong>Status:</strong> {{ tournament.status }}</p>
-            <p><strong>Runda:</strong> {{ tournament.round }}</p>
+            <p><strong>Runda:</strong> {{ tournament.round if tournament.round }}</p>
         </div>
     </div>
 </div>
 
 {% if tournament.type == 'league' %}
 <h2>Tabela Ligowa</h2>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    table thead tr {
+        background-color: #000202;
+        color: #000000;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    table th,
+    table td {
+        border: 1px solid #dddddd;
+        padding: 12px 15px;
+    }
+
+    table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    table tbody tr:last-of-type {
+        border-bottom: 2px solid #000202;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .round {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.round h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.round ul {
+    list-style: none;
+    padding: 0;
+}
+
+.match-item {
+    display: flex;
+    flex-direction: column; /* Zmieniamy na kolumnowy układ */
+    align-items: center;
+    justify-content: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+    border-radius: 5px;
+}
+
+.match-item:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.02);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.match-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.team-name {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.team-name img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.match-score {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    min-width: 60px;
+    text-align: center;
+}
+
+.referee {
+    margin-top: 5px;  /* Odstęp między wynikiem a sędzią */
+    text-align: center;  /* Wyrównanie sędziego do środka */
+    font-style: italic;  /* Opcjonalnie: kursywa dla sędziego */
+    font-size: 14px;  /* Opcjonalne: zmniejszenie czcionki sędziego */
+    color: green; /* Opcjonalnie: zmiana koloru tekstu sędziego */
+}
+.no-referee {
+    color: red; /* Czerwony kolor dla tekstu 'BRAK SĘDZIEGO' */
+    font-weight: bold; /* Opcjonalnie: pogrubienie tekstu */
+}
+
+</style>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -28,7 +194,7 @@
     <tbody>
         {% for team, points in ranking.items() %}
         <tr>
-            <td><a href="{{ url_for('views.team_details', team_id=team.id) }}">{{ team.name }}</a></td>
+            <td>{{ team.name }}</a></td>
             <td>{{ points }}</td>
         </tr>
         {% else %}
@@ -38,6 +204,31 @@
         {% endfor %}
     </tbody>
 </table>
+
+<h2 class="mt-4">Mecze</h2>
+<div class="list-group">
+    {% for match in matches %}
+    <li class="match-item {% if match.status == 'planned' %}clickable{% endif %}" 
+    {% if match.status == 'planned' %}
+    data-toggle="modal" data-target="#matchModal" data-match-id="{{ match.id }}"
+    {% endif %}>
+    <div class="match-info">
+        <span class="team-name">{{ match.home_team.name }}</span>
+        <span class="match-score">
+            {{ match.scoreHome if match.scoreHome is not none else "-" }} :
+            {{ match.scoreAway if match.scoreAway is not none else "-" }}
+        </span>
+        <span class="team-name">{{ match.away_team.name }}</span>
+    </div>
+    <!-- Nowy kontener dla sędziego -->
+    <div class="referee">
+        <span class="{% if match.referee is none %}no-referee{% else %}referee{% endif %}">
+            SĘDZIA: {{ (match.referee.firstName + ' ' + match.referee.lastName) if match.referee is not none else "BRAK SĘDZIEGO" }}
+        </span>
+    </div>
+</li>
+    {% endfor %}
+</div>
 {% endif %}
 
 {% if tournament.type == 'playoff' %}
@@ -70,8 +261,9 @@
 
 .match-item {
     display: flex;
+    flex-direction: column; /* Zmieniamy na kolumnowy układ */
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 12px 15px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
@@ -85,11 +277,19 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
+.match-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
 .team-name {
     display: flex;
     align-items: center;
     font-weight: bold;
     font-size: 18px;
+    text-transform: uppercase;
 }
 
 .team-name img {
@@ -108,6 +308,18 @@
     text-align: center;
 }
 
+.referee {
+    margin-top: 5px;  /* Odstęp między wynikiem a sędzią */
+    text-align: center;  /* Wyrównanie sędziego do środka */
+    font-style: italic;  /* Opcjonalnie: kursywa dla sędziego */
+    font-size: 14px;  /* Opcjonalne: zmniejszenie czcionki sędziego */
+    color: green;  /* Opcjonalnie: zmiana koloru tekstu sędziego */
+}
+.no-referee {
+    color: red; /* Czerwony kolor dla tekstu 'BRAK SĘDZIEGO' */
+    font-weight: bold; /* Opcjonalnie: pogrubienie tekstu */
+}
+
 </style>
 <div class="tournament-bracket">
     {% for round_number, matches_in_round in rounds.items() %}
@@ -119,18 +331,27 @@
                 {% if match.status == 'planned' %}
                 data-toggle="modal" data-target="#matchModal" data-match-id="{{ match.id }}"
                 {% endif %}>
-                <span class="team-name">{{ match.home_team.name }}</span>
-                <span class="match-score">
-                    {{ match.scoreHome if match.scoreHome is not none else "-" }} :
-                    {{ match.scoreAway if match.scoreAway is not none else "-" }}
-                </span>
-                <span class="team-name">{{ match.away_team.name }}</span>
+                <div class="match-info">
+                    <span class="team-name">{{ match.home_team.name }}</span>
+                    <span class="match-score">
+                        {{ match.scoreHome if match.scoreHome is not none else "-" }} :
+                        {{ match.scoreAway if match.scoreAway is not none else "-" }}
+                    </span>
+                    <span class="team-name">{{ match.away_team.name }}</span>
+                </div>
+                <!-- Nowy kontener dla sędziego -->
+                <div class="referee">
+                    <span class="{% if match.referee is none %}no-referee{% else %}referee{% endif %}">
+                        SĘDZIA: {{ (match.referee.firstName + ' ' + match.referee.lastName) if match.referee is not none else "BRAK SĘDZIEGO" }}
+                    </span>
+                </div>
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endfor %}
 </div>
+{% endif %}
 <!-- Okno modalne do wyboru akcji meczu -->
 <div class="modal fade" id="matchModal" tabindex="-1" aria-labelledby="matchModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -157,7 +378,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 
 <!-- <h2 class="mt-4">Mecze</h2>
 <form method="POST">
@@ -202,14 +422,8 @@
 </form> -->
 
 <div class="actions mt-3">
-    <form method="POST" action="{{ url_for('admin.cancel_tournament', tournament_id=tournament.id) }}">
-        <button type="submit" class="btn btn-danger">Przerwij turniej</button>
-    </form>
     <form method="POST" action="{{ url_for('admin.end_tournament', tournament_id=tournament.id) }}">
         <button type="submit" class="btn btn-warning mt-2">Zakończ turniej</button>
-    </form>
-    <form method="POST" action="{{ url_for('admin.delete_tournament', tournament_id=tournament.id) }}">
-        <button type="submit" class="btn btn-danger mt-2">Usuń turniej</button>
     </form>
     {% if tournament.type == 'playoff' %}
     <form method="POST" action="{{ url_for('admin.draw_next_round', tournament_id=tournament.id) }}">
@@ -218,31 +432,36 @@
     {% endif %}
 </div>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll(".match-item").forEach(function(item) {
-            item.addEventListener("click", function() {
-                let matchId = this.getAttribute("data-match-id");
-                document.getElementById("modalMatchId").value = matchId;
-            });
-        });
-
-        document.getElementById("matchActionForm").addEventListener("submit", function(event) {
-            event.preventDefault();  // Zapobiega przeładowaniu strony
-            let formData = new FormData(this);
-            // process_match_action
-            fetch("{{ url_for('admin.home_admin') }}", {
-                method: "POST",
-                body: formData
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      alert("Akcja wykonana!");
-                      location.reload();
-                  } else {
-                      alert("Wystąpił błąd: " + data.error);
-                  }
-              });
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".match-item").forEach(function(item) {
+        item.addEventListener("click", function() {
+            let matchId = this.getAttribute("data-match-id");
+            document.getElementById("modalMatchId").value = matchId;
         });
     });
+
+    document.getElementById("matchActionForm").addEventListener("submit", function(event) {
+        event.preventDefault();  // Zapobiega przeładowaniu strony
+        let formData = new FormData(this);
+        
+        fetch("{{ url_for('admin.process_match_action') }}", {
+            method: "POST",
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Jeśli zwrócono URL do przekierowania, przechodzimy na tę stronę
+                  if (data.redirect_url) {
+                      window.location.href = data.redirect_url; // Przekierowanie do nowej strony
+                  } else {
+                      location.reload(); // Jeśli brak redirect_url, przeładuj stronę
+                  }
+              } else {
+                  alert("Wystąpił błąd: " + data.error);
+              }
+          });
+    });
+});
+
 </script>
 {% endblock %}
