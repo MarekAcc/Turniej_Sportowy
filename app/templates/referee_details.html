@@ -1,67 +1,49 @@
-
 {% extends "base.html" %}
 
 {% block title %}
-{{ referee.firstName }}{{referee.lastName}} - Szczegóły
+{{ referee.firstName }} {{ referee.lastName }} - Szczegóły
 {% endblock %}
 
 {% block content %}
-<h1>{{ referee.firstName }} {{referee.lastName}}</h1>
+<div class="referee-details-container">
+    <h1 class="referee-name">{{ referee.firstName }} {{ referee.lastName }}</h1>
 
-<h2>Mecze</h2>
-<style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        font-size: 18px;
-        text-align: left;
-    }
+    <div class="referee-matches">
+        <h2>Mecze</h2>
 
-    table thead tr {
-        background-color: #000202;
-        color: #ffffff;
-        text-align: left;
-        font-weight: bold;
-    }
+        {% if matches %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Mecz</th>
+                    <th>Wynik</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr>
 
-    table th,
-    table td {
-        border: 1px solid #dddddd;
-        padding: 12px 15px;
-    }
-
-    table tbody tr {
-        border-bottom: 1px solid #dddddd;
-    }
-
-    table tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3;
-    }
-
-    table tbody tr:last-of-type {
-        border-bottom: 2px solid #000202;
-    }
-
-    table tbody tr:hover {
-        background-color: #f1f1f1;
-    }
-</style>
-<div class="list-group">
-    {% for match in matches %}
-    <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
-        </div>
-        <p class="mb-1 text-center">
-            <strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong>
-        </p>
-    </a>
-    {% else %}
-    <div class="list-group-item">
-        <p class="mb-0 text-muted text-center">Brak meczy</p>
+                    <td>
+                        <a href="{{ url_for('views.match_details', match_id=match.id) }}">
+                            {{ match.home_team.name }} vs {{ match.away_team.name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if match.scoreHome is not none and match.scoreAway is not none %}
+                        {{ match.scoreHome }} - {{ match.scoreAway }}
+                        {% else %}
+                        Brak wyniku
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center">Brak meczy</p>
+        {% endif %}
     </div>
-    {% endfor %}
+
+    <a id="back" href="{{ url_for('views.referees') }}">⬅ Powrót do sędziów</a>
 </div>
-<a href="{{ url_for('views.referees') }}">Powrót do sędziów</a>
 {% endblock %}

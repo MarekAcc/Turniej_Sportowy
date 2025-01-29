@@ -253,3 +253,569 @@ a:hover {
     color: grey;
     text-decoration: none;
 }
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Odstęp między polem a przyciskiem */
+    max-width: 400px;
+    /* Ograniczenie szerokości */
+    margin-bottom: 20px;
+    /* Odstęp od innych elementów */
+}
+
+/* Styl pola wyszukiwania */
+#search-input {
+    flex: 1;
+    /* Rozciąga się na całą dostępną szerokość */
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Efekt po kliknięciu w pole */
+#search-input:focus {
+    border-color: #007bff;
+    /* Podświetlenie na niebiesko */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Styl przycisku */
+#search-button {
+    padding: 10px 15px;
+    background-color: #1366be;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Efekt hover na przycisku */
+#search-button:hover {
+    background-color: #0056b3;
+}
+
+/* Efekt po kliknięciu */
+#search-button:active {
+    background-color: #003d80;
+}
+
+/* Stylowanie linku powrotu */
+#back {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    background-color: #2a79c9;
+    /* Zielony kolor */
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Efekt hover */
+#back:hover {
+    background-color: #308ae3;
+    /* Ciemniejszy zielony */
+    box-shadow: 3px 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+/* Efekt po kliknięciu */
+#back:active {
+    background-color: #143e83;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tournament-bracket {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px;
+}
+
+.round {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.round h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.round ul {
+    list-style: none;
+    padding: 0;
+}
+
+.round li {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Stylowanie drużyn */
+.team-name {
+    font-size: 18px;
+    font-weight: bold;
+    flex: 1;
+    text-align: center;
+}
+
+/* Stylowanie wyniku */
+.match-score {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    width: 80px;
+}
+
+/* Odstęp przed linkiem powrotu */
+.spacer {
+    height: 20px;
+}
+
+/* Stylowanie nagłówka meczu */
+/* Stylowanie nagłówka meczu */
+.match-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Kontener wydarzeń */
+.events-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+
+/* Stylowanie wydarzeń drużyn */
+.team-events {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 250px;
+}
+
+/* Stylowanie nagłówka drużyny */
+.team-events h3 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+/* Stylowanie listy wydarzeń */
+.team-events ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.team-events li {
+    font-size: 18px;
+    padding: 5px 0;
+}
+
+/* Stylowanie wyniku meczu na środku */
+.match-score-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: rgb(0, 0, 0);
+    font-size: 30px;
+    font-weight: bold;
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Dodatkowy odstęp przed linkiem powrotu */
+.spacer {
+    margin-bottom: 20px;
+}
+
+/* Styl dla komunikatu "Brak wydarzeń" */
+.no-events {
+    text-align: center;
+    font-size: 18px;
+    font-style: italic;
+    color: #888;
+    margin-top: 20px;
+}
+
+.team-details {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.team-name {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.coach-info,
+.players-container,
+.matches-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.players-list,
+.matches-list {
+    list-style: none;
+    padding: 0;
+}
+
+.players-list li,
+.matches-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.players-list li:last-child,
+.matches-list li:last-child {
+    border-bottom: none;
+}
+
+.player-link,
+.match-link {
+    display: block;
+    text-decoration: none;
+    color: #333;
+    padding: 8px 12px;
+    transition: background 0.2s ease-in-out;
+}
+
+.player-link:hover,
+.match-link:hover {
+    background: #f1f1f1;
+}
+
+.match-title {
+    font-weight: bold;
+}
+
+.match-score {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 5px 0;
+}
+
+.match-date {
+    font-size: 14px;
+    color: #666;
+}
+
+.no-info {
+    color: #999;
+    font-style: italic;
+}
+
+/* Podkreślenie wyniku meczu */
+.match-win {
+    border-left: 5px solid #28a745;
+    /* Zielony pasek dla wygranych */
+}
+
+.match-loss {
+    border-left: 5px solid #dc3545;
+    /* Czerwony pasek dla przegranych */
+}
+
+.match-draw {
+    border-left: 5px solid #ffc107;
+    /* Żółty pasek dla remisów */
+}
+
+.back-button {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+    transition: background 0.2s ease-in-out;
+}
+
+.back-button:hover {
+    background: #0056b3;
+}
+
+.coach-link {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    transition: color 0.2s ease-in-out;
+}
+
+.coach-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Ogólne stylowanie dla strony zawodnika */
+.player-details-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1.player-name {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    color: #333;
+}
+
+.player-info p,
+.player-team p,
+.player-events p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+
+.player-info p strong,
+.player-team p strong,
+.player-events p strong {
+    font-weight: bold;
+}
+
+/* Stylowanie linku drużyny */
+.player-team a {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.player-team a:hover {
+    text-decoration: underline;
+}
+
+/* Stylowanie dla wydarzeń meczu */
+.match-events {
+    list-style-type: none;
+    padding: 0;
+}
+
+.match-events .event-item {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.match-events .event-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#back {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+}
+
+#back:hover {
+    background-color: #0056b3;
+}
+
+/* Ogólne stylowanie dla strony trenera */
+.coach-details-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1.coach-name {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    color: #333;
+}
+
+.coach-info p,
+.coach-team p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+
+.coach-info p strong,
+.coach-team p strong {
+    font-weight: bold;
+}
+
+/* Stylowanie linku drużyny */
+.coach-team a {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.coach-team a:hover {
+    text-decoration: underline;
+}
+
+#back {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+}
+
+#back:hover {
+    background-color: #0056b3;
+}
+
+/* Stylizacja dla strony szczegółów sędziego */
+/* Stylizacja dla strony szczegółów sędziego */
+.referee-details-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1.referee-name {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.referee-matches h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 1.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table thead tr {
+    background-color: #2c3e50;
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+table th,
+table td {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+}
+
+table tbody tr:nth-of-type(even) {
+    background-color: #ecf0f1;
+}
+
+table tbody tr:last-of-type {
+    border-bottom: 2px solid #2c3e50;
+}
+
+table tbody tr:hover {
+    background-color: #bdc3c7;
+}
+
+table td a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+table td a:hover {
+    text-decoration: underline;
+}
+
+table td {
+    text-align: center;
+}
+
+#back {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.5rem 1rem;
+    background-color: #3498db;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+}
+
+#back:hover {
+    background-color: #2980b9;
+}
+
+.text-muted {
+    color: #7f8c8d;
+}

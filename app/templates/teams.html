@@ -5,24 +5,27 @@ Drużyny
 {% endblock %}
 
 {% block content %}
-<h1>Drużyny</h1>
+<h1 style="text-align: center;">Drużyny</h1>
 
 <form method="get" action="{{ url_for('views.teams') }}">
-    <input type="text" name="query" placeholder="Wyszukaj drużyny..." value="{{ request.args.get('query', '') }}">
-    <button type="submit">Szukaj</button>
+    <div class="search-container">
+        <input id="search-input" type="text" name="query" placeholder="Wyszukaj drużyny..."
+            value="{{ request.args.get('query', '') }}">
+        <button id="search-button" type="submit">Szukaj</button>
+    </div>
 </form>
 
 <ul>
     {% for team in teams %}
     <a href="{{ url_for('views.team_details', team_id=team.id) }}">
-    <li>
-        {{ team.name }}
-    </li>
+        <li>
+            {{ team.name }}
+        </li>
     </a>
     {% else %}
     <li>Brak wyników</li>
     {% endfor %}
 </ul>
 
-<a href="{{ url_for('views.home') }}">Powrót do strony głównej</a>
+<a id="back" href="{{ url_for('views.home') }}">⬅ Powrót do strony głównej</a>
 {% endblock %}

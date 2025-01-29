@@ -5,11 +5,14 @@ Trenerzy
 {% endblock %}
 
 {% block content %}
-<h1>Trenerzy</h1>
+<h1 style="text-align: center;">Trenerzy</h1>
 
 <form method="get" action="{{ url_for('views.coaches') }}">
-    <input type="text" name="query" placeholder="Wyszukaj trenerów..." value="{{ request.args.get('query', '') }}">
-    <button type="submit">Szukaj</button>
+    <div class="search-container">
+        <input id="search-input" type="text" name="query" placeholder="Wyszukaj trenerów..."
+            value="{{ request.args.get('query', '') }}">
+        <button id="search-button" type="submit">Szukaj</button>
+    </div>
 </form>
 
 <ul>
@@ -30,5 +33,5 @@ Trenerzy
     {% endfor %}
 </ul>
 
-<a href="{{ url_for('views.home') }}">Powrót do strony głównej</a>
+<a id="back" href="{{ url_for('views.home') }}">⬅ Powrót do strony głównej</a>
 {% endblock %}

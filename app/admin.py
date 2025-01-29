@@ -165,7 +165,7 @@ def tournament_adder():
             return render_template('create_tournament.html', user=current_user)
         
         try:  
-            new_tournament = create_tournament(tournamentName,tournamentType, 'active')
+            new_tournament = create_tournament(tournamentName,tournamentType, 'planned')
             flash('Turniej został pomyślnie dodany!', 'success')
             return redirect(url_for('admin.teams_to_tournament_adder', numTeams=numTeams, tournament_id=new_tournament.id))
         except ValueError as e:

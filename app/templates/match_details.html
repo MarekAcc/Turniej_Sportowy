@@ -5,16 +5,53 @@ Mecz - {{ match.home_team.name }} vs {{ match.away_team.name }}
 {% endblock %}
 
 {% block content %}
-<h1>{{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
-<p>Data: {{ match.date }}</p>
-<p>Wynik: {{ match.scoreHome }} - {{ match.scoreAway }}</p>
+<h1 class="match-title">{{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
 
 <h2>Wydarzenia w meczu</h2>
-<ul>
-    {% for event in match_events %}
-    <li>{{ event.eventType }}: {{ event.player.firstName }} {{ event.player.lastName }}</li>
-    {% endfor %}
-</ul>
 
-<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+{% if match_events %}
+<div class="events-container">
+    <div class="team-events">
+        <h3>{{ match.home_team.name }}</h3>
+        <ul>
+            {% for event in match_events if event.player.team_id == match.home_team.id %}
+            <li>
+                {% if event.eventType == "goal" %}
+                ⚽ {{ event.player.firstName }} {{ event.player.lastName }}
+                {% elif event.eventType == "redCard" %}
+                🔴 {{ event.player.firstName }} {{ event.player.lastName }}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- WYNIK MECZU NA ŚRODKU -->
+    <div class="match-score-box">
+        <span class="match-score">{{ match.scoreHome }} - {{ match.scoreAway }}</span>
+    </div>
+
+    <div class="team-events">
+        <h3>{{ match.away_team.name }}</h3>
+        <ul>
+            {% for event in match_events if event.player.team_id == match.away_team.id %}
+            <li>
+                {% if event.eventType == "goal" %}
+                ⚽ {{ event.player.firstName }} {{ event.player.lastName }}
+                {% elif event.eventType == "redCard" %}
+                🔴 {{ event.player.firstName }} {{ event.player.lastName }}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% else %}
+<p class="no-events">Brak wydarzeń w tym meczu.</p>
+{% endif %}
+
+<div class="spacer"></div>
+<a id="back" href="{{ url_for('views.tournament_details', tournament_id=match.tournament.id) }}">
+    ⬅ Powrót do turnieju
+</a>
 {% endblock %}

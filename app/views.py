@@ -138,22 +138,20 @@ def referees():
     query = request.args.get('query')
 
     if query:
-        try:
-            parts = query.split(' ', 1)
-            if len(parts) == 2:
-                first_name, last_name = parts
-                refs = Referee.query.filter(
-                    (Referee.firstName.ilike(f"%{first_name}%")) &
-                    (Referee.lastName.ilike(f"%{last_name}%"))
-                ).all()
-            else:
-                refs = Referee.query.filter(
-                    (Referee.firstName.ilike(f"%{query}%")) |
-                    (Referee.lastName.ilike(f"%{query}%"))
-                ).all()
-        except ValueError as e:
-            flash("Błąd w przetwarzaniu zapytania: " + str(e), 'danger')
-            referees = []
+
+        parts = query.split(' ', 1)
+        if len(parts) == 2:
+            first_name, last_name = parts
+            referees = Referee.query.filter(
+                (Referee.firstName.ilike(f"%{first_name}%")) &
+                (Referee.lastName.ilike(f"%{last_name}%"))
+            ).all()
+        else:
+            referees = Referee.query.filter(
+                (Referee.firstName.ilike(f"%{query}%")) |
+                (Referee.lastName.ilike(f"%{query}%"))
+            ).all()
+
     else:
         referees = Referee.get_refs()
     return render_template("referees.html", referees=referees, user=current_user)
@@ -317,7 +315,6 @@ def show_tournament():
     return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams, matches_by_round=sorted_matches_by_round)
 
 
-
 @views.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -382,6 +379,7 @@ def draw_next_round(tournament_id):
     tournament = Tournament.find_tournament_by_id(tournament_id)
     pass
 
+
 @views.route('/delete-player', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -416,6 +414,7 @@ def delete_team():
             return render_template('delete_team.html', teams=all_teams)
 
     return render_template('delete_team.html', teams=all_teams)
+
 
 @views.route('/match-adder', methods=['GET', 'POST'])
 @login_required
@@ -455,7 +454,7 @@ def manage_match():
     match = Match.find_match_by_id(match_id)
 
     if not match.referee:
-        flash('Ten mecz nie ma przypianego sędziego! Nie moze się odbyć!','warning')
+        flash('Ten mecz nie ma przypianego sędziego! Nie moze się odbyć!', 'warning')
 
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
 
@@ -583,7 +582,6 @@ def match_event_detail(match_id):
 
             if red_card:
                 create_match_event("redCard", match_id, player.id)
-
 
         match.status = 'managed'
         db.session.commit()

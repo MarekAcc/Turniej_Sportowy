@@ -5,50 +5,67 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ team.name }}</h1>
+<div class="team-details">
+    <h1 class="team-name">{{ team.name }}</h1>
 
-<h2>Trener</h2>
-<p>
-    {% if coach %}
-    imie i nazwisko trenera: {{ coach.firstName }} {{ coach.lastName }} {{ coach.id}}
-    {% else %}
-    Brak przypisanego trenera.
-    {% endif %}
-</p>
+    <div class="coach-info">
+        <h2>Trener</h2>
+        {% if coach %}
+        <p><strong>Imię i nazwisko:</strong></p>
+        <p>
+            <a href="{{ url_for('views.coach_details', coach_id=coach.id) }}" class="coach-link">
+                {{ coach.firstName }} {{ coach.lastName }}
+            </a>
+        </p>
+        {% else %}
+        <p class="no-info">Brak przypisanego trenera.</p>
+        {% endif %}
+    </div>
+    <div class="players-container">
+        <h2>Zawodnicy</h2>
+        {% if players %}
+        <ul class="players-list">
+            {% for player in players %}
+            <li>
+                <a href="{{ url_for('views.player_details', player_id=player.id) }}" class="player-link">
+                    <p><strong>Imię i nazwisko:</strong> {{ player.firstName }} {{ player.lastName }}</p>
+                    <p><strong>Wiek:</strong> {{ player.age }}</p>
+                    <p><strong>Pozycja:</strong> {{ player.position if player.position else "Obecnie brak pozycji" }}
+                    </p>
+                    <p><strong>Status:</strong> {{ player.status }}</p>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="no-info">Brak zawodników w tej drużynie.</p>
+        {% endif %}
+    </div>
 
-<h2>Zawodnicy</h2>
-<ul>
-    {% if players %}
-    {% for player in players %}
-    <a href="{{ url_for('views.player_details', player_id=player.id) }}">
-    <li>
-        
-            {{ player.firstName }} {{ player.lastName }}
-        
-        (Wiek: {{ player.age }}, Pozycja: {{ player.position }}, Status: {{ player.status }})
-    </li>
-    </a>
-    {% endfor %}
-    {% else %}
-    <li>Brak zawodników w tej drużynie.</li>
-    {% endif %}
-</ul>
+    <div class="matches-container">
+        <h2>Mecze</h2>
+        {% if matches %}
+        <ul class="matches-list">
+            {% for match in matches %}
+            {% set is_home_team = match.home_team.id == team.id %}
+            {% set team_score = match.scoreHome if is_home_team else match.scoreAway %}
+            {% set opponent_score = match.scoreAway if is_home_team else match.scoreHome %}
+            {% set opponent_name = match.away_team.name if is_home_team else match.home_team.name %}
+            {% set match_result = "win" if team_score > opponent_score else ("loss" if team_score < opponent_score
+                else "draw" ) %} <li class="match-{{ match_result }}">
+                <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="match-link">
+                    <p class="match-title">{{ opponent_name }} ({{ "Gospodarze" if is_home_team else "Wyjazd" }})</p>
+                    <p class="match-score">{{ team_score }} - {{ opponent_score }}</p>
 
-<h2>Mecze</h2>
-<ul>
-    {% if matches %}
-    {% for match in matches %}
-    <a href="{{ url_for('views.match_details', match_id=match.id) }}">
-    <li>
-        
-            {{ match.home_team.name }} vs {{ match.away_team.name }} -{{ match.date }}
-    </li>
-    </a>
-    {% endfor %}
-    {% else %}
-    <li>Brak rozegranych meczów dla tej drużyny.</li>
-    {% endif %}
-</ul>
+                </a>
+                </li>
+                {% endfor %}
+        </ul>
+        {% else %}
+        <p class="no-info">Brak rozegranych meczów dla tej drużyny.</p>
+        {% endif %}
+    </div>
 
-<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+    <a id="back" href="{{ url_for('views.teams') }}" class="back-button">⬅ Powrót do drużyn</a>
+</div>
 {% endblock %}

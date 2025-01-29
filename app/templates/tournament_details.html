@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ tournament.name }}</h1>
+<h1 style="text-align: center;">{{ tournament.name }}</h1>
 
 {% if tournament.type == 'league' %}
 <!-- Tabela ligowa -->
@@ -59,8 +59,8 @@
         {% for team, points in ranking.items(): %}
         <tr>
             <a href="{{ url_for('views.team_details', team_id=team.id) }}">
-            <td>{{ team.name }}</td>
-            <td> {{ points }}</td>
+                <td>{{ team.name }}</td>
+                <td> {{ points }}</td>
             </a>
         </tr>
         {% else %}
@@ -73,39 +73,7 @@
 {% endif %}
 {% if tournament.type == 'playoff' %}
 <h2>Drabinka (Playoff)</h2>
-<style>
-    .tournament-bracket {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        margin: 20px;
-    }
 
-    .round {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    .round h3 {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-
-    .round ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .round li {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        border-bottom: 1px solid #eee;
-    }
-</style>
 <div class="tournament-bracket">
     {% for round_number, matches_in_round in rounds.items() %}
     <div class="round">
@@ -128,14 +96,15 @@
 <h2 class="mt-4">Mecze</h2>
 <div class="list-group">
     {% for match in matches %}
+    {% if match.scoreHome is not none and match.scoreAway is not none %}
     <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
+        <div class="d-flex w-100 justify-content-between align-items-center">
+            <span class="team-name">{{ match.home_team.name }}</span>
+            <span class="match-score"><strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong></span>
+            <span class="team-name">{{ match.away_team.name }}</span>
         </div>
-        <p class="mb-1 text-center">
-            <strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong>
-        </p>
     </a>
+    {% endif %}
     {% else %}
     <div class="list-group-item">
         <p class="mb-0 text-muted text-center">Brak meczy</p>
@@ -143,5 +112,8 @@
     {% endfor %}
 </div>
 
-<a href="{{ url_for('views.tournaments') }}">Powrót do turniejów</a>
+<!-- Dodanie odstępu przed linkiem powrotu -->
+<div class="spacer"></div>
+<a id="back" href="/">⬅ Powrót do strony głównej</a>
+
 {% endblock %}

@@ -5,20 +5,25 @@ Szczegóły Trenera
 {% endblock %}
 
 {% block content %}
-<h1>Szczegóły Trenera</h1>
+<div class="coach-details-container">
+        <h1 class="coach-name">{{ coach.firstName }} {{ coach.lastName }}</h1>
 
-<p><strong>Imię i nazwisko:</strong> {{ coach.firstName }} {{ coach.lastName }}</p>
-<p><strong>Wiek:</strong> {{ coach.age if coach.age else 'Nieznany' }}</p>
+        <div class="coach-info">
+                <h2>Informacje o trenerze</h2>
+                <p><strong>Wiek:</strong> {{ coach.age if coach.age else 'Nieznany' }}</p>
+        </div>
 
-{% if team %}
-<a href="{{ url_for('views.team_details', team_id=team.id) }}">
-<p><strong>Drużyna:</strong>
-        {{ team.name }}
-</p>
-</a>
-{% else %}
-<p><strong>Drużyna:</strong> Brak przypisanej drużyny</p>
-{% endif %}
+        <div class="coach-team">
+                <h2>Drużyna</h2>
+                {% if team %}
+                <a href="{{ url_for('views.team_details', team_id=team.id) }}">
+                        <p><strong>{{ team.name }}</strong></p>
+                </a>
+                {% else %}
+                <p>Brak przypisanej drużyny</p>
+                {% endif %}
+        </div>
 
-<a href="{{ url_for('views.coaches') }}">Powrót do listy trenerów</a>
+        <a id="back" href="{{ url_for('views.coaches') }}">⬅ Powrót do listy trenerów</a>
+</div>
 {% endblock %}
