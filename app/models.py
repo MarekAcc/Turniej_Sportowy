@@ -116,6 +116,12 @@ class Tournament(db.Model):
         if planned_matches > 0:
             raise ValueError(
                 "Nie można zakończyć turnieju, ponieważ istnieją niezakończone mecze.")
+        ended_matches = Match.query.filter_by(
+            tournament_id=tournament.id, status='ended').count()
+        
+        if ended_matches > 0:
+            raise ValueError(
+                "Nie można zakończyć turnieju, ponieważ istnieją nieobsluzone mecze.")
 
         # Dodatkowe zabezpieczenie dla turnieju typu 'playoff'
         if tournament.type == 'playoff':
@@ -206,7 +212,7 @@ class Tournament(db.Model):
         ).all()
 
         # Sprawdzenie, czy wszystkie mecze w rundzie są zakończone
-        if any(match.status != 'ended' for match in matches_in_round):
+        if any(match.status != 'managed' for match in matches_in_round):
             raise ValueError(
                 "Nie można wygenerować kolejnej rundy, dopóki wszystkie mecze obecnej rundy nie zostaną zakończone.")
 
