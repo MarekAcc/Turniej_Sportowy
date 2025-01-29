@@ -107,7 +107,7 @@ class Tournament(db.Model):
         if not tournament:
             raise ValueError("Turniej nie istnieje.")
 
-        if tournament.status == 'ended':
+        if tournament.status == 'managed':
             raise ValueError("Turniej już został zakończony.")
 
         # Sprawdzenie, czy istnieją mecze o statusie 'planned'
@@ -117,8 +117,8 @@ class Tournament(db.Model):
             raise ValueError(
                 "Nie można zakończyć turnieju, ponieważ istnieją niezakończone mecze.")
         ended_matches = Match.query.filter_by(
-            tournament_id=tournament.id, status='ended').count()
-        
+            tournament_id=tournament.id, status='managed').count()
+
         if ended_matches > 0:
             raise ValueError(
                 "Nie można zakończyć turnieju, ponieważ istnieją nieobsluzone mecze.")
@@ -127,7 +127,7 @@ class Tournament(db.Model):
         if tournament.type == 'playoff':
             last_round = tournament.round
             ended_matches = Match.query.filter_by(
-                tournament_id=tournament.id, round=last_round, status='ended').count()
+                tournament_id=tournament.id, round=last_round, status='managed').count()
             if ended_matches != 1:
                 raise ValueError(
                     "Nie można zakończyć turnieju typu 'playoff', ponieważ ostatnia runda nie została poprawnie zakończona (dokładnie jeden mecz musi być zakończony).")
@@ -471,8 +471,9 @@ class Match(db.Model):
 
     referee_id = db.Column(db.Integer, db.ForeignKey(
         'referee.id'))
-    
-    referee = db.relationship("Referee", foreign_keys=[referee_id], back_populates="matches")
+
+    referee = db.relationship("Referee", foreign_keys=[
+                              referee_id], back_populates="matches")
 
     home_team = db.relationship(
         "Team", foreign_keys=[homeTeam_id], back_populates="home_matches")
@@ -481,8 +482,6 @@ class Match(db.Model):
     tournament = db.relationship("Tournament", back_populates="matches")
 
     matchEvents = db.relationship('MatchEvent', back_populates='match')
-
-
 
     @classmethod
     def get_matches(cls, n=None, sort_by="id"):
@@ -569,22 +568,22 @@ class Match(db.Model):
 
         if match.status == 'ended':
             raise ValueError("Mecz już został zakończony.")
-        
+
         match.scoreHome = scoreHome
         match.scoreAway = scoreAway
         players_home = homeTeam.players
         players_away = awayTeam.players
 
         db.session.commit()
-        
+
         for player in players_home:
-            if player.position =="field":
-                player.appearances+=1
+            if player.position == "field":
+                player.appearances += 1
             if player.status == "suspended":
                 player.status == "active"
         for player in players_away:
             if player.position == "field":
-                player.appearances+=1 
+                player.appearances += 1
             if player.status == "suspended":
                 player.status == "active"
         # Zapis zmian w bazie danych
@@ -751,6 +750,7 @@ class Coach(db.Model, UserMixin):
         db.session.delete(coach_id)
         db.session.commit()
 
+
 class Referee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     firstName = db.Column(db.String(50), nullable=False)
@@ -761,14 +761,15 @@ class Referee(db.Model):
     @classmethod
     def find_ref(cls, query):
         """Znajdź sędziego na podstawie imienia i nazwiska."""
-        first_name, last_name = query.split(" ", 1) if " " in query else (query, "")
+        first_name, last_name = query.split(
+            " ", 1) if " " in query else (query, "")
         return cls.query.filter(
             db.and_(
                 cls.firstName.ilike(f"%{first_name}%"),
                 cls.lastName.ilike(f"%{last_name}%")
             )
         ).first()
-    
+
     @classmethod
     def find_referee_by_id(cls, id):
         p = cls.query.get(id)
@@ -776,13 +777,9 @@ class Referee(db.Model):
             raise ValueError("Nie istnieje sędzia o takim ID.")
         return p
 
-    
     @classmethod
-    def get_refs(cls, n = None, sort_by = "lastName"):
+    def get_refs(cls, n=None, sort_by="lastName"):
         query = cls.query.order_by(getattr(cls, sort_by).asc())
         if n:
             query = query.limit(n)
         return query.all()
-
-        
-        

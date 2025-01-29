@@ -51,12 +51,22 @@
             {% set team_score = match.scoreHome if is_home_team else match.scoreAway %}
             {% set opponent_score = match.scoreAway if is_home_team else match.scoreHome %}
             {% set opponent_name = match.away_team.name if is_home_team else match.home_team.name %}
-            {% set match_result = "win" if team_score > opponent_score else ("loss" if team_score < opponent_score
-                else "draw" ) %} <li class="match-{{ match_result }}">
+
+            {% set match_result = "draw" %}
+            {% if team_score is not none and opponent_score is not none %}
+            {% if team_score > opponent_score %}
+            {% set match_result = "win" %}
+            {% elif team_score < opponent_score %} {% set match_result="loss" %} {% endif %} {% endif %} <li
+                class="match-{{ match_result }}">
                 <a href="{{ url_for('views.match_details', match_id=match.id) }}" class="match-link">
                     <p class="match-title">{{ opponent_name }} ({{ "Gospodarze" if is_home_team else "Wyjazd" }})</p>
-                    <p class="match-score">{{ team_score }} - {{ opponent_score }}</p>
-
+                    <p class="match-score">
+                        {% if team_score is not none and opponent_score is not none %}
+                        {{ team_score }} - {{ opponent_score }}
+                        {% else %}
+                        Brak wyniku
+                        {% endif %}
+                    </p>
                 </a>
                 </li>
                 {% endfor %}

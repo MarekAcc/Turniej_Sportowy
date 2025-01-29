@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session,abort,jsonify
-from .models import Tournament,Team,Match, Coach, Player, MatchEvent, Referee
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, abort, jsonify
+from .models import Tournament, Team, Match, Coach, Player, MatchEvent, Referee
 from . import db
 from .services.tournament import calculate_ranking
 from .services.create import create_player, create_tournament, create_team, create_match, create_match_event, create_referee
@@ -10,13 +10,15 @@ from sqlalchemy import or_
 
 admin = Blueprint('admin', __name__)
 
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return abort(401)  # Niezalogowani użytkownicy
         if current_user.login != 'ADMIN':
-            return abort(403)  # Brak dostępu dla użytkowników bez uprawnień admina
+            # Brak dostępu dla użytkowników bez uprawnień admina
+            return abort(403)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -28,7 +30,9 @@ def home_admin():
     return render_template("home_admin.html", user=current_user)
 
 # Dodawanie zawodnika do bazy
-@admin.route('/new-player', methods=['GET', 'POST']) 
+
+
+@admin.route('/new-player', methods=['GET', 'POST'])
 @login_required  # Wymagane zalogowanie użytkownika
 @admin_required
 def player_adder():
@@ -46,16 +50,20 @@ def player_adder():
 
         try:
             # Próba utworzenia zawodnika w bazie danych
-            create_player(firstName, lastName, age)  # Funkcja dodająca zawodnika
+            # Funkcja dodająca zawodnika
+            create_player(firstName, lastName, age)
             flash('Zawodnik został pomyślnie dodany!', 'success')
-            return redirect(url_for('admin.home_admin', user=current_user))  # Przekierowanie na stronę główną admina
+            # Przekierowanie na stronę główną admina
+            return redirect(url_for('admin.home_admin', user=current_user))
         except ValueError as e:
             # Obsługa błędu podczas tworzenia zawodnika
             flash(str(e), 'danger')
-            return render_template('new_player.html', user=current_user)  # Ponowne załadowanie formularza
+            # Ponowne załadowanie formularza
+            return render_template('new_player.html', user=current_user)
 
     # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
     return render_template("new_player.html", user=current_user)
+
 
 @admin.route('/delete-player', methods=['GET', 'POST'])
 @login_required
@@ -66,7 +74,7 @@ def delete_player():
         player_id = request.form.get('player_id')
         if not player_id:
             flash("Wybierz zawodnika!", 'danger')
-            return render_template('delete_player.html',players=all_players)
+            return render_template('delete_player.html', players=all_players)
         try:
             Player.delete_player(player_id)
             flash('Pomyślnie wyrejestrowano zawodnika!', 'success')
@@ -75,16 +83,19 @@ def delete_player():
             flash(str(e), 'danger')
             return render_template('delete_player.html', players=all_players)
 
-    return render_template('delete_player.html',players=all_players)
+    return render_template('delete_player.html', players=all_players)
 
 # Dodawanie nowej drużyny
+
+
 @admin.route('/team-adder', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def team_adder():
     # Pobranie listy zawodników bez przypisanej drużyny
     players = []
-    coaches = Coach.query.filter(Coach.firstName != 'ADMIN', Coach.team == None).all()
+    coaches = Coach.query.filter(
+        Coach.firstName != 'ADMIN', Coach.team == None).all()
 
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
@@ -96,7 +107,7 @@ def team_adder():
         try:
             coach = Coach.find_coach_by_id(coach_id)
         except ValueError as e:
-            flash(str(e), 'danger') 
+            flash(str(e), 'danger')
             return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
         # # Pobranie danych zawodników z formularza
@@ -115,16 +126,17 @@ def team_adder():
 
         try:
             # Próba utworzenia drużyny
-            create_team(name, team_players,coach)
+            create_team(name, team_players, coach)
             flash('Drużyna została pomyślnie zarejestrowana!', 'success')
             return redirect(url_for('admin.home_admin', user=current_user))
         except ValueError as e:
             # Obsługa błędów podczas tworzenia drużyny
-            flash(str(e), 'danger') 
+            flash(str(e), 'danger')
             return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
     # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
     return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
+
 
 @admin.route('/delete-team', methods=['GET', 'POST'])
 @login_required
@@ -135,17 +147,18 @@ def delete_team():
         team_id = request.form.get('team_id')
         if not team_id:
             flash("Wybierz druzyne!", 'danger')
-            return render_template('delete_team.html',teams=all_teams)
-        
+            return render_template('delete_team.html', teams=all_teams)
+
         try:
             Team.delete_team(team_id)
             flash('Pomyślnie wyrejestrowano druzyne!', 'success')
             return redirect(url_for('admin.home_admin'))
         except ValueError as e:
             flash(str(e), 'danger')
-            return render_template('delete_team.html',teams=all_teams)
+            return render_template('delete_team.html', teams=all_teams)
 
-    return render_template('delete_team.html',teams=all_teams)
+    return render_template('delete_team.html', teams=all_teams)
+
 
 @admin.route('/create-tournament', methods=['GET', 'POST'])
 @login_required
@@ -159,19 +172,21 @@ def tournament_adder():
         if not tournamentName or not tournamentType or not numTeams or numTeams < 2:
             flash('Wszystkie pola są wymagane!', 'danger')
             return render_template('create_tournament.html', user=current_user)
-        
+
         if tournamentType == 'Turniej pucharowy' and (numTeams <= 0 or (numTeams & (numTeams - 1)) != 0):
             flash('Ilość druzyn w turnieju PLAY-OFF musi być potęgą liczby 2!', 'danger')
             return render_template('create_tournament.html', user=current_user)
-        
-        try:  
-            new_tournament = create_tournament(tournamentName,tournamentType, 'planned')
+
+        try:
+            new_tournament = create_tournament(
+                tournamentName, tournamentType, 'planned')
             flash('Turniej został pomyślnie dodany!', 'success')
             return redirect(url_for('admin.teams_to_tournament_adder', numTeams=numTeams, tournament_id=new_tournament.id))
         except ValueError as e:
             flash(str(e), 'danger')
             return render_template("create_tournament.html", user=current_user)
     return render_template("create_tournament.html", user=current_user)
+
 
 @admin.route('/add-teams-to-tournament', methods=['GET', 'POST'])
 @login_required
@@ -200,8 +215,6 @@ def teams_to_tournament_adder():
                     return redirect(url_for('admin.teams_to_tournament_adder', numTeams=num_teams, tournament_id=tournament_id))
                 teams.append(team)
 
-            
-
         if len(teams) == num_teams:
             try:
                 Tournament.add_teams(tournament.name, teams)
@@ -220,6 +233,7 @@ def teams_to_tournament_adder():
     # Tworzymy dynamiczne formularze do dodania drużyn
     return render_template("add_teams_to_tournament.html", user=current_user, num_teams=num_teams, teams=all_teams)
 
+
 @admin.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -229,11 +243,12 @@ def choose_tournament_to_manage():
         tournament_id = request.form.get('tournament_id')
         if not tournament_id:
             flash(f'Wybierz druzyne!', 'warning')
-            return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
+            return render_template('choose_tournament_to_manage.html', tournaments=all_tournaments)
         else:
-                return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id)) 
+            return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
 
-    return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
+    return render_template('choose_tournament_to_manage.html', tournaments=all_tournaments)
+
 
 @admin.route('/manage-tournament', methods=['GET', 'POST'])
 @login_required
@@ -260,7 +275,7 @@ def manage_tournament():
         if matches:
             # Grupujemy mecze według rundy
             rounds = {r: [m for m in matches if m.round == r]
-                    for r in range(1, tournament.round + 1)}
+                      for r in range(1, tournament.round + 1)}
         else:
             flash("Brak meczów w turnieju.", "warning")
             rounds = {}
@@ -268,14 +283,15 @@ def manage_tournament():
     if request.method == 'POST':
         if not tournament:
             flash(f'Błąd!', 'warning')
-            return redirect(url_for('admin.choose_tournament_to_manage')) 
+            return redirect(url_for('admin.choose_tournament_to_manage'))
 
-    return render_template('manage_tournament.html',        
-        tournament=tournament,
-        ranking=ranking,
-        matches=matches,
-        rounds=rounds,
-        user=current_user)
+    return render_template('manage_tournament.html',
+                           tournament=tournament,
+                           ranking=ranking,
+                           matches=matches,
+                           rounds=rounds,
+                           user=current_user)
+
 
 @admin.route('/end-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
@@ -291,6 +307,7 @@ def end_tournament(tournament_id):
         flash(str(e), 'danger')
         return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
 
+
 @admin.route('/cancel-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -304,11 +321,12 @@ def cancel_tournament(tournament_id):
     except ValueError as e:
         flash(str(e), 'danger')
         return redirect(url_for('admin.home_admin'))
-    
+
+
 @admin.route('/delete-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
 @admin_required
-def delete_tournament(tournament_id):   
+def delete_tournament(tournament_id):
     # Obsługa usuniecia turnieju
     tournament = Tournament.find_tournament_by_id(tournament_id)
     try:
@@ -318,7 +336,8 @@ def delete_tournament(tournament_id):
     except ValueError as e:
         flash(str(e), 'danger')
         return redirect(url_for('admin.home_admin'))
-    
+
+
 @admin.route('/draw-next-round/<int:tournament_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -331,7 +350,8 @@ def draw_next_round(tournament_id):
     except ValueError as e:
         flash(str(e), 'danger')
         return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
-    
+
+
 @admin.route('/choose-match-to-manage', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -343,18 +363,20 @@ def choose_match_to_manage():
 
         if not match_id or not action_type:
             flash('Pola nie mogą być puste!', 'warning')
-            return render_template('choose_match_to_manage.html',matches=all_matches)
+            return render_template('choose_match_to_manage.html', matches=all_matches)
         match = Match.find_match_by_id(match_id)
         if not match:
-            flash('Nie ma takiego meczu!','warning')
+            flash('Nie ma takiego meczu!', 'warning')
             return render_template('choose_match_to_manage.html', matches=all_matches)
-        
+
         if action_type == 'Dodanie wyniku meczu':
             return redirect(url_for('admin.manage_match', match_id=match_id))
         elif action_type == 'Przypisanie sędziego do meczu':
             return redirect(url_for('admin.add_referee_to_match', match_id=match_id))
 
-    return render_template('choose_match_to_manage.html',matches=all_matches)
+    return render_template('choose_match_to_manage.html', matches=all_matches)
+
+
 @admin.route('/process-match-action', methods=['POST'])
 @login_required
 @admin_required
@@ -391,7 +413,6 @@ def process_match_action():
     return jsonify({"success": False, "error": "Nieznana akcja"}), 400
 
 
-
 @admin.route('/add-referee-to-match', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -411,9 +432,9 @@ def add_referee_to_match():
             flash('Nie mozna przypsać sędziego do meczu ktory juz się odbyl!', 'warning')
             return redirect(url_for('admin.home_admin'))
         if match.referee:
-            flash ('Do meczu już jest przypisany sędza! ', 'danger')
+            flash('Do meczu już jest przypisany sędza! ', 'danger')
             return redirect(url_for('admin.add_referee_to_match', match_id=match_id))
-        
+
         match.referee_id = referee_id
         referee.matches.append(match)
 
@@ -421,30 +442,30 @@ def add_referee_to_match():
         flash('Przypisano sędziego do meczu! ', 'success')
         return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
 
-    return render_template('add_referee_to_match.html',referees=all_referees)
-        
+    return render_template('add_referee_to_match.html', referees=all_referees)
+
+
 @admin.route('/manage-match', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def manage_match():
     match_id = request.args.get('match_id', type=int)
-    match = Match.find_match_by_id(match_id)  
+    match = Match.find_match_by_id(match_id)
     if not match:
-        flash('Nie ma takiego meczu!','warning')
+        flash('Nie ma takiego meczu!', 'warning')
         return redirect(url_for('admin.home_admin'))
 
     if match.status != 'planned':
         flash('Nie mozna edytować zakonczonego meczu!', 'warning')
         return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
-    
+
     if not match.referee:
         flash('Nie mozna dodać wyniku, gdy nie ma sędziego meczu!', 'warning')
-        return redirect(url_for('admin.choose_match_to_manage'))
-    
-        
+        return redirect(url_for('admin.manage_tournament', tournament_id=match.tournament_id))
+
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
     homeTeam = Team.find_team_by_id(match.homeTeam_id)
-    awayTeam= Team.find_team_by_id(match.awayTeam_id)
+    awayTeam = Team.find_team_by_id(match.awayTeam_id)
 
     # TUTAJ DODAĆ SPRAWDZANIE CZY ZAWODNIcy nie mają czerwonych kartek
     players_home = homeTeam.players
@@ -472,15 +493,15 @@ def manage_match():
             return redirect(url_for('admin.choose_match_to_manage'))
 
         try:
-            Match.finish_match(match, scoreHome,scoreAway)
+            Match.finish_match(match, scoreHome, scoreAway)
             flash('Dodano wynik meczu!', 'success')
             return redirect(url_for('views.match_event_detail', match_id=match_id))
         except ValueError as e:
             flash(str(e), 'danger')
             return redirect(url_for('admin.home_admin'))
 
+    return render_template('manage_match.html', tournament=tournament, homeTeam=homeTeam, awayTeam=awayTeam)
 
-    return render_template('manage_match.html',tournament=tournament,homeTeam=homeTeam,awayTeam=awayTeam)
 
 @admin.route('/match-event-adder', methods=['GET', 'POST'])
 @login_required
@@ -516,9 +537,11 @@ def match_event_adder():
     return render_template("match-event-adder.html", user=current_user, matches=matches, players=players)
 
 # Dodawanie zawodnika do bazy
-@admin.route('/new-referee', methods=['GET', 'POST']) 
-@login_required 
-@admin_required # Wymagane zalogowanie użytkownika
+
+
+@admin.route('/new-referee', methods=['GET', 'POST'])
+@login_required
+@admin_required  # Wymagane zalogowanie użytkownika
 def referee_adder():
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
@@ -534,13 +557,16 @@ def referee_adder():
 
         try:
             # Próba utworzenia zawodnika w bazie danych
-            create_referee(firstName, lastName, age)  # Funkcja dodająca zawodnika
+            # Funkcja dodająca zawodnika
+            create_referee(firstName, lastName, age)
             flash('Sędzia został pomyślnie dodany!', 'success')
-            return render_template('new_referee.html', user=current_user) # Przekierowanie na stronę główną admina
+            # Przekierowanie na stronę główną admina
+            return render_template('home_admin.html', user=current_user)
         except ValueError as e:
             # Obsługa błędu podczas tworzenia zawodnika
             flash(str(e), 'danger')
-            return render_template('new_referee.html', user=current_user)  # Ponowne załadowanie formularza
+            # Ponowne załadowanie formularza
+            return render_template('new_referee.html', user=current_user)
 
     # Renderowanie strony z formularzem, jeśli metoda żądania to 'GET'
     return render_template('new_referee.html', user=current_user)

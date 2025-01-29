@@ -19,6 +19,7 @@ Szczegóły meczu
         </thead>
         <tbody>
             {% for player in match.home_team.players %}
+            {%if player.position == 'field' %}
             <tr>
                 <td>{{ player.firstName }} {{ player.lastName }}</td>
                 <td>
@@ -29,6 +30,7 @@ Szczegóły meczu
                     <input type="checkbox" name="red_card_{{ player.id }}">
                 </td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
@@ -44,6 +46,7 @@ Szczegóły meczu
         </thead>
         <tbody>
             {% for player in match.away_team.players %}
+            {%if player.position == 'field' %}
             <tr>
                 <td>{{ player.firstName }} {{ player.lastName }}</td>
                 <td>
@@ -54,6 +57,7 @@ Szczegóły meczu
                     <input type="checkbox" name="red_card_{{ player.id }}">
                 </td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
