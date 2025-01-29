@@ -40,7 +40,9 @@ def remove_player_from_team():
         return redirect(url_for('coach.home_coach'))
 
     # Usuń zawodnika z drużyny
-    player.team_id = None  # Lub ustaw na inną drużynę, jeśli to pożądane
+    player.team_id = None
+    player.position = None
+    player.status = 'active'  # Lub ustaw na inną drużynę, jeśli to pożądane
     db.session.commit()
 
     flash(f'Zawodnik {player.firstName} {player.lastName} został usunięty z drużyny.', 'success')

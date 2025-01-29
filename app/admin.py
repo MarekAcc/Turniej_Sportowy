@@ -6,6 +6,7 @@ from .services.create import create_player, create_tournament, create_team, crea
 from flask_login import login_user, login_required, logout_user, current_user
 from collections import defaultdict
 from functools import wraps
+from sqlalchemy import or_
 
 admin = Blueprint('admin', __name__)
 
@@ -82,8 +83,8 @@ def delete_player():
 @admin_required
 def team_adder():
     # Pobranie listy zawodników bez przypisanej drużyny
-    players = Player.get_players_without_team()
-    coaches = Coach.query.filter(Coach.firstName != 'ADMIN').all()
+    players = []
+    coaches = Coach.query.filter(Coach.firstName != 'ADMIN', Coach.team == None).all()
 
     # Sprawdzenie, czy metoda żądania to 'POST'
     if request.method == 'POST':
@@ -98,14 +99,14 @@ def team_adder():
             flash(str(e), 'danger') 
             return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
 
-        # Pobranie danych zawodników z formularza
-        for i in range(1, 3):
-            player_id = request.form.get(f'player_id_{i}')
-            if not player_id:
-                flash('Wszyscy zawodnicy są wymagani!', 'danger')
-                return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
-            player = Player.find_player_by_id(player_id)
-            team_players.append(player)
+        # # Pobranie danych zawodników z formularza
+        # for i in range(1, 3):
+        #     player_id = request.form.get(f'player_id_{i}')
+        #     if not player_id:
+        #         flash('Wszyscy zawodnicy są wymagani!', 'danger')
+        #         return render_template("register_team.html", user=current_user, players=players, coaches=coaches)
+        #     player = Player.find_player_by_id(player_id)
+        #     team_players.append(player)
 
         # Sprawdzenie, czy nazwa drużyny została podana
         if not name:
@@ -164,7 +165,7 @@ def tournament_adder():
             return render_template('create_tournament.html', user=current_user)
         
         try:  
-            new_tournament = create_tournament(tournamentName,tournamentType, 'planned')
+            new_tournament = create_tournament(tournamentName,tournamentType, 'active')
             flash('Turniej został pomyślnie dodany!', 'success')
             return redirect(url_for('admin.teams_to_tournament_adder', numTeams=numTeams, tournament_id=new_tournament.id))
         except ValueError as e:
@@ -194,15 +195,21 @@ def teams_to_tournament_adder():
             team_id = request.form.get(f'team_{i}')
             if team_id:
                 team = Team.query.get(team_id)  # Pobieramy drużynę po ID
+                if team in teams:
+                    flash('Dodałeś tę samą druzynę kilka razy!', 'danger')
+                    return redirect(url_for('admin.teams_to_tournament_adder', numTeams=num_teams, tournament_id=tournament_id))
                 teams.append(team)
+
+            
 
         if len(teams) == num_teams:
             try:
                 Tournament.add_teams(tournament.name, teams)
                 Tournament.generate_matches(tournament)
                 flash('Drużyny zostały dodane pomyślnie!', 'success')
+                flash('Pierwsza kolejka została wygenerowana!', 'success')
                 # Przekierowanie do strony głównej lub innej
-                return redirect(url_for('admin.tournament_adder'))
+                return redirect(url_for('admin.home_admin'))
             except ValueError as e:
                 flash(str(e), 'danger')
 
@@ -224,7 +231,7 @@ def choose_tournament_to_manage():
             flash(f'Wybierz druzyne!', 'warning')
             return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
         else:
-            return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id))
+                return redirect(url_for('admin.manage_tournament', tournament_id=tournament_id)) 
 
     return render_template('choose_tournament_to_manage.html',tournaments=all_tournaments)
 
@@ -234,11 +241,42 @@ def choose_tournament_to_manage():
 def manage_tournament():
     tournament_id = request.args.get('tournament_id', type=int)
     tournament = Tournament.find_tournament_by_id(tournament_id)
+    matches = Match.query.filter(Match.tournament_id == tournament_id).all()
+    print(matches)
+    ranking = None
+    rounds = None
+    matches = []
+    # Logika dla turniejów ligowych
+    if tournament.type == 'league':
+        try:
+            # Obliczanie rankingu, obsługa wyjątku w przypadku braku meczów
+            ranking = calculate_ranking(tournament_id)
+        except ValueError as e:
+            flash(str(e), "warning")  # Wyświetlenie komunikatu o błędzie
+            ranking = {}
+
+    # Logika dla turniejów typu playoff
+    elif tournament.type == 'playoff':
+        matches = Match.query.filter_by(tournament_id=tournament_id).all()
+        if matches:
+            # Grupujemy mecze według rundy
+            rounds = {r: [m for m in matches if m.round == r]
+                    for r in range(1, tournament.round + 1)}
+        else:
+            flash("Brak meczów w turnieju.", "warning")
+            rounds = {}
 
     if request.method == 'POST':
-        print("ajaja")
+        if not tournament:
+            flash(f'Błąd!', 'warning')
+            return redirect(url_for('admin.choose_tournament_to_manage')) 
 
-    return render_template('manage_tournament.html',tournament=tournament)
+    return render_template('manage_tournament.html',        
+        tournament=tournament,
+        ranking=ranking,
+        matches=matches,
+        rounds=rounds,
+        user=current_user)
 
 @admin.route('/end-tournament/<int:tournament_id>', methods=['POST'])
 @login_required
@@ -307,7 +345,11 @@ def choose_match_to_manage():
         if not match_id or not action_type:
             flash('Pola nie mogą być puste!', 'warning')
             return render_template('choose_match_to_manage.html',matches=all_matches)
-
+        match = Match.find_match_by_id(match_id)
+        if not match:
+            flash('Nie ma takiego meczu!','warning')
+            return render_template('choose_match_to_manage.html', matches=all_matches)
+        
         if action_type == 'Dodanie wyniku meczu':
             return redirect(url_for('admin.manage_match', match_id=match_id))
         elif action_type == 'Przypisanie sędziego do meczu':
@@ -352,6 +394,9 @@ def add_referee_to_match():
 def manage_match():
     match_id = request.args.get('match_id', type=int)
     match = Match.find_match_by_id(match_id)  
+    if not match:
+        flash('Nie ma takiego meczu!','warning')
+        return redirect(url_for('admin.choose_match_to_manage'))
 
     if match.status != 'planned':
         flash('Nie mozna edytować zakonczonego meczu!', 'warning')
@@ -359,15 +404,40 @@ def manage_match():
     
     if not match.referee:
         flash('Nie mozna dodać wyniku, gdy nie ma sędziego meczu!', 'warning')
-        return redirect(url_for('admin.home_admin'))
+        return redirect(url_for('admin.choose_match_to_manage'))
+    
         
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
     homeTeam = Team.find_team_by_id(match.homeTeam_id)
     awayTeam= Team.find_team_by_id(match.awayTeam_id)
 
+    # TUTAJ DODAĆ SPRAWDZANIE CZY ZAWODNIcy nie mają czerwonych kartek
+    players_home = homeTeam.players
+    players_away = awayTeam.players
+
+    suspended_players = Player.query.filter(
+        Player.status == 'suspended',
+        Player.position == 'field',
+        or_(
+            Player.team == homeTeam,
+            Player.team == awayTeam
+        )
+    ).all()
+
+    if suspended_players:
+        flash('W składach druzyn są zawodnicy zawieszeni!', 'warning')
+        return redirect(url_for('admin.choose_match_to_manage'))
+
+
+
+
     if request.method == 'POST':
         scoreHome = request.form.get('scoreHome')
         scoreAway = request.form.get('scoreAway')
+
+        if not scoreAway or not scoreHome:
+            flash('Podaj prawidłowe wyniki!', 'warning')
+            return redirect(url_for('admin.choose_match_to_manage'))
 
         try:
             Match.finish_match(match, scoreHome,scoreAway)

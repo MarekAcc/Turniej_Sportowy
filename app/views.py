@@ -317,75 +317,6 @@ def show_tournament():
     return render_template("tournament_admin.html", user=current_user, tournament=tournament, teams=teams, matches_by_round=sorted_matches_by_round)
 
 
-@views.route('/create-tournament', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def tournament_adder():
-    if request.method == 'POST':
-        tournamentName = request.form.get('tournamentName')
-        tournamentType = request.form.get('tournamentType')
-        numTeams = request.form.get('numTeams')  # Liczba drużyn
-        numTeams = int(numTeams)
-        if not tournamentName or not tournamentType or not numTeams or numTeams < 2:
-            flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template('create_tournament.html', user=current_user)
-
-        if tournamentType == 'Turniej pucharowy' and (numTeams <= 0 or (numTeams & (numTeams - 1)) != 0):
-            flash('Ilość druzyn w turnieju PLAY-OFF musi być potęgą liczby 2!', 'danger')
-            return render_template('create_tournament.html', user=current_user)
-
-        try:
-            new_tournament = create_tournament(
-                tournamentName, tournamentType, 'planned')
-            flash('Turniej został pomyślnie dodany!', 'success')
-            return redirect(url_for('views.teams_to_tournament_adder', numTeams=numTeams, tournament_id=new_tournament.id))
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return render_template("create_tournament.html", user=current_user)
-    return render_template("create_tournament.html", user=current_user)
-
-
-@views.route('/add-teams-to-tournament', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def teams_to_tournament_adder():
-    # Pobieranie liczby drużyn
-    num_teams = request.args.get('numTeams', type=int)
-    tournament_id = request.args.get(
-        'tournament_id', type=int)  # Pobieranie ID turnieju
-
-    # Pobieramy obiekt turnieju
-    tournament = Tournament.find_tournament_by_id(tournament_id)
-
-    # Pobieramy wszystkie druzyny
-    all_teams = Team.get_teams_without_tournament()
-
-    if request.method == 'POST':
-        teams = []
-        for i in range(num_teams):
-            # Pobieramy ID drużyny z formularza
-            team_id = request.form.get(f'team_{i}')
-            if team_id:
-                team = Team.query.get(team_id)  # Pobieramy drużynę po ID
-                teams.append(team)
-
-        if len(teams) == num_teams:
-            try:
-                Tournament.add_teams(tournament.name, teams)
-                Tournament.generate_matches(tournament)
-                flash('Drużyny zostały dodane pomyślnie!', 'success')
-                # Przekierowanie do strony głównej lub innej
-                return redirect(url_for('views.tournament_adder'))
-            except ValueError as e:
-                flash(str(e), 'danger')
-
-        else:
-            flash(
-                f'Wszystkie {num_teams} drużyny muszą zostać dodane!', 'danger')
-
-    # Tworzymy dynamiczne formularze do dodania drużyn
-    return render_template("add_teams_to_tournament.html", user=current_user, num_teams=num_teams, teams=all_teams)
-
 
 @views.route('/choose-tournament-to-manage', methods=['GET', 'POST'])
 @login_required
@@ -451,31 +382,6 @@ def draw_next_round(tournament_id):
     tournament = Tournament.find_tournament_by_id(tournament_id)
     pass
 
-
-# Dodawanie zawodnika do bazy
-@views.route('/new-player', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def player_adder():
-    if request.method == 'POST':
-        firstName = request.form.get('firstName')
-        lastName = request.form.get('lastName')
-        age = request.form.get('age')
-
-        if not firstName or not lastName or not age:
-            flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template('new_player.html', user=current_user)
-        try:
-            create_player(firstName, lastName, age)
-            flash('Zawodnik został pomyślnie dodany!', 'success')
-            return redirect(url_for('views.home_admin', user=current_user))
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return render_template('new_player.html', user=current_user)
-
-    return render_template("new_player.html", user=current_user)
-
-
 @views.route('/delete-player', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -511,40 +417,6 @@ def delete_team():
 
     return render_template('delete_team.html', teams=all_teams)
 
-
-@views.route('/team-adder', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def team_adder():
-    # Pobierz zawodnikow bez druzyny
-    players = Player.get_players_without_team()
-
-    if request.method == 'POST':
-        name = request.form.get('name')
-        team_players = []
-        # Pobieranie zawodnikow z formularza
-        for i in range(1, 3):
-            player_id = request.form.get(f'player_id_{i}')
-            if not player_id:
-                flash('Wszyscy zawodnicy są wymagani!', 'danger')
-                return render_template("register_team.html", user=current_user, players=players)
-            player = Player.find_player_by_id(player_id)
-            team_players.append(player)
-
-        if not name:
-            flash('Wszystkie pola są wymagane!', 'danger')
-            return render_template("register_team.html", user=current_user, players=players)
-        try:
-            create_team(name, team_players)
-            flash('Druzyna została pomyślnie zarejestrowana!', 'success')
-            return render_template("register_team.html", user=current_user, players=players)
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return render_template("register_team.html", user=current_user, players=players)
-
-    return render_template("register_team.html", user=current_user, players=players)
-
-
 @views.route('/match-adder', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -575,26 +447,15 @@ def match_adder():
     )
 
 
-@views.route('/choose-match-to-manage', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def choose_match_to_manage():
-
-    all_matches = Match.query.all()
-
-    if request.method == 'POST':
-        match_id = request.form.get('match_id')
-        return redirect(url_for('views.manage_match', match_id=match_id))
-
-    return render_template('choose_match_to_manage.html', matches=all_matches)
-
-
 @views.route('/manage-match', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def manage_match():
     match_id = request.args.get('match_id', type=int)
     match = Match.find_match_by_id(match_id)
+
+    if not match.referee:
+        flash('Ten mecz nie ma przypianego sędziego! Nie moze się odbyć!','warning')
 
     tournament = Tournament.find_tournament_by_id(match.tournament_id)
 

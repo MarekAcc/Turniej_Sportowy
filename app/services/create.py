@@ -20,8 +20,8 @@ def create_player(firstName, lastName, age):
 
 
 def create_tournament(name, type, status):
-    if len(name) > 100:
-        raise ValueError('Nazwa turnieju jest za długa!')
+    if len(name) > 100 or len(name) < 4:
+        raise ValueError('Nazwa turnieju jest nieprawidłowej dlugości! (4-100 znaków)')
 
     if Tournament.query.filter_by(name=name).first():
         raise ValueError(f"Turniej o nazwie '{name}' już istnieje!")
@@ -48,16 +48,19 @@ def create_team(name, players, coach):
 
     if Team.query.filter_by(name=name).first():
         raise ValueError(f"Druzyna o nazwie '{name}' już istnieje!")
+    
+    if coach.team != None:
+        raise ValueError(f"Trener {coach.firstName} {coach.lastName} jest juz przeypisany do innej druzyny!")
 
     new_team = Team(name=name)
     db.session.add(new_team)
     db.session.commit()
 
-    for p in players:
-        if p.team_id != None:
-            raise ValueError(
-                f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
-        p.team_id = new_team.id
+    # for p in players:
+    #     if p.team_id != None:
+    #         raise ValueError(
+    #             f"Zawodnik '{p.first_name} {p.last_name}' jest juz przypisany do innej druzyny!")
+    #     p.team_id = new_team.id
 
     coach.team_id = new_team.id
 
