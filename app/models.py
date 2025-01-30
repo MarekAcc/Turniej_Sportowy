@@ -53,11 +53,19 @@ class Tournament(db.Model):
 
         if not teams:
             raise ValueError(f"Brak druzyn")
+        
+
 
         for team in teams:
             if team in tournament.teams:
                 raise ValueError(
                     f"Drużyna {team.name} już znajduje się w turnieju {name}.")
+            
+            players= Player.query.filter( Player.team_id == team.id).all()
+            if len(players) < 3:
+                raise ValueError(
+                    f"Drużyna {team.name} nie ma wystarczającej liczby zawodników, zeby wziąć udział w turnieju. (min 3 zawodników)")
+            
             tournament.teams.append(team)
             team.tournament_id = tournament.id
 
@@ -107,7 +115,7 @@ class Tournament(db.Model):
         if not tournament:
             raise ValueError("Turniej nie istnieje.")
 
-        if tournament.status == 'managed':
+        if tournament.status == 'ended':
             raise ValueError("Turniej już został zakończony.")
 
         # Sprawdzenie, czy istnieją mecze o statusie 'planned'
@@ -116,8 +124,10 @@ class Tournament(db.Model):
         if planned_matches > 0:
             raise ValueError(
                 "Nie można zakończyć turnieju, ponieważ istnieją niezakończone mecze.")
-        ended_matches = Match.query.filter_by(
-            tournament_id=tournament.id, status='managed').count()
+        ended_matches = Match.query.filter(
+            (Match.tournament_id == tournament.id) & 
+            (Match.status.in_(['ended', 'planned']))
+        ).count()
 
         if ended_matches > 0:
             raise ValueError(

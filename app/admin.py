@@ -212,7 +212,7 @@ def teams_to_tournament_adder():
                 team = Team.query.get(team_id)  # Pobieramy drużynę po ID
                 if team in teams:
                     flash('Dodałeś tę samą druzynę kilka razy!', 'danger')
-                    return redirect(url_for('admin.teams_to_tournament_adder', numTeams=num_teams, tournament_id=tournament_id))
+                    return redirect(url_for('admin.teams_to_tournament_adder', numTeams=num_teams, tournament_id=tournament_id, tournament=tournament))
                 teams.append(team)
 
         if len(teams) == num_teams:
@@ -231,7 +231,7 @@ def teams_to_tournament_adder():
                 f'Wszystkie {num_teams} drużyny muszą zostać dodane!', 'danger')
 
     # Tworzymy dynamiczne formularze do dodania drużyn
-    return render_template("add_teams_to_tournament.html", user=current_user, num_teams=num_teams, teams=all_teams)
+    return render_template("add_teams_to_tournament.html", user=current_user, num_teams=num_teams, teams=all_teams,tournament_id=tournament_id, tournament=tournament)
 
 
 @admin.route('/choose-tournament-to-manage', methods=['GET', 'POST'])

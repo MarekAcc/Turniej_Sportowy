@@ -7,6 +7,22 @@
 {% block content %}
 <h1 style="text-align: center;">{{ tournament.name }}</h1>
 
+{% if tournament.status == 'ended' %}
+<h3 style="text-align: center;"> ZAKOŃCZONY</h3>
+{% endif %}
+
+{%  if tournament.status == 'planned' %}
+<h3 style="text-align: center;"> ZAPLANOWANY</h3>
+{% endif %}
+
+{%  if tournament.status == 'active' %}
+<h3 style="text-align: center;"> TRWA</h3>
+{% endif %}
+
+{%  if tournament.status == 'canceled' %}
+<h3 style="text-align: center;"> ANULOWANY</h3>
+{% endif %}
+
 {% if tournament.type == 'league' %}
 <!-- Tabela ligowa -->
 <h2>Tabela Ligowa</h2>
@@ -102,6 +118,7 @@
             <span class="team-name">{{ match.home_team.name }}</span>
             <span class="match-score"><strong>{{ match.scoreHome }} - {{ match.scoreAway }}</strong></span>
             <span class="team-name">{{ match.away_team.name }}</span>
+            <!-- <span class="team-name">{{ match.status }}</span> -->
         </div>
     </a>
     {% endif %}

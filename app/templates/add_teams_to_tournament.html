@@ -18,5 +18,8 @@ Add teams to tournament
     {% endfor %}
     <button type="submit" class="btn btn-primary">Dodaj Drużyny</button>
 </form>
+<form method="POST" action="{{ url_for('admin.delete_tournament', tournament_id=tournament.id) }}">
+    <button type="submit" class="btn btn-warning mt-2">ANULUJ</button>
+</form>
 
 {% endblock %}
